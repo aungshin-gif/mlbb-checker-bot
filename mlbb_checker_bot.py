@@ -1,11 +1,8 @@
 import os
 import requests
+import asyncio
 from telegram import Update
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    ContextTypes,
-)
+from telegram.ext import Application, CommandHandler, ContextTypes
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
@@ -53,14 +50,19 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-def main():
+async def main():
+    # Event loop create & set
+    loop = asyncio.get_event_loop()
+
     app = Application.builder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("check", check))
 
-    app.run_polling()
+    # Run polling with async-safe
+    await app.run_polling()
 
 
 if __name__ == "__main__":
-    main()
+    # Run async main
+    asyncio.run(main())
