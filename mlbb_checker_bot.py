@@ -1,3 +1,4 @@
+import os
 import logging
 import requests
 from telegram import Update
@@ -9,7 +10,7 @@ from telegram.ext import (
     filters,
 )
 
-BOT_TOKEN = "8745943851:AAGz41yBqx6KUTAyMsdvKDI-XhcAtCRGrr4"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 logging.basicConfig(level=logging.INFO)
 
