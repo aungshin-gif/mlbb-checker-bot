@@ -47,7 +47,7 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     if not BOT_TOKEN:
-        print("BOT_TOKEN မရှိပါ")
+        print("BOT_TOKEN not found")
         return
 
     app = Application.builder().token(BOT_TOKEN).build()
