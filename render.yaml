@@ -1,4 +1,5 @@
 
+
 services:
   - type: web
     name: g2bulk-aiogram-bot
@@ -16,7 +17,8 @@ services:
         sync: false
       - key: ADMIN_CHAT_ID
         sync: false
-
-
+      - key: DATABASE_URL
+        sync: false
+        
 
 
