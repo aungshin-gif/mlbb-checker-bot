@@ -1,0 +1,10 @@
+1. Mobile Legends | mlbb | primary
+2. PUBG Mobile | pubgm | success
+3. Free Fire Global | freefire_global | primary
+4. Honor of Kings | hok | danger
+5. Valorant | valorant | primary
+6. Call of Duty Mobile | codm_sgmy | danger
+7. Delta Force | deltaforce | danger
+8. Arena of Valor | aove | success
+9. League of Legends MY | league_of_legends_my | primary
+10. Free Fire Bangladesh | freefire_bd | success
