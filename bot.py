@@ -1,4 +1,3 @@
-
 import asyncio
 import os
 import uuid
@@ -16,6 +15,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from dotenv import load_dotenv
+from db import Database
 
 load_dotenv()
 
@@ -62,6 +62,7 @@ balances: dict[int, int] = {}
 pending_recharges: dict[str, dict[str, int]] = {}
 
 router = Router()
+db = Database()
 
 class TopUp(StatesGroup):
     waiting_player_id = State()
@@ -125,6 +126,7 @@ def confirm_keyboard() -> InlineKeyboardMarkup:
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext) -> None:
     await state.clear()
+    await db.ensure_user(message.from_user.id, message.from_user.username, message.from_user.first_name)
     await message.answer(
         f"<b>GAME TOP-UP STORE</b>\n━━━━━━━━━━━━━━\nမင်္ဂလာပါ {message.from_user.first_name}!\n\nFast • Safe • Reliable\nGame ၁၅ ခုအတွက် top-up order တင်နိုင်ပါတယ်။",
         reply_markup=main_keyboard(),
@@ -200,29 +202,29 @@ async def recharge_receipt(message: Message, state: FSMContext, bot: Bot) -> Non
     data = await state.get_data()
     amount = data.get("recharge_amount", 0)
     await message.answer("Recharge request လက်ခံပါပြီ။ Admin စစ်ပြီး wallet balance update လုပ်ပေးပါမယ်။")
-    request_id = uuid.uuid4().hex[:10]
-    pending_recharges[request_id] = {"user_id": message.from_user.id, "amount": amount}
+    request_id = await db.create_recharge(message.from_user.id, amount, message.photo[-1].file_id)
     if ADMIN_CHAT_ID:
         approval_keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [button("APPROVE", f"recharge_approve:{request_id}", "success"), button("REJECT", f"recharge_reject:{request_id}", "danger")]
         ])
-        await bot.send_photo(ADMIN_CHAT_ID, message.photo[-1].file_id, caption=f"Recharge request\nUser: {message.from_user.id}\nAmount: {format_mmk(amount)}", reply_markup=approval_keyboard)
+        await bot.send_photo(ADMIN_CHAT_ID, message.photo[-1].file_id, caption=f"Recharge request\nID: {request_id}\nUser: {message.from_user.id}\nAmount: {format_mmk(amount)}", reply_markup=approval_keyboard)
     await state.clear()
 
 @router.callback_query(F.data == "balance")
 async def balance_callback(callback: CallbackQuery) -> None:
     await callback.answer("စစ်နေပါတယ်...")
     try:
-        data = await api_request("/getMe")
-        await callback.message.answer(f"<b>WALLET BALANCE</b>\n━━━━━━━━━━━━━━\n<code>{float(data.get('balance', 0)):.2f}</code>")
+        amount = await db.balance(callback.from_user.id)
+        await callback.message.answer(f"<b>WALLET BALANCE</b>\n━━━━━━━━━━━━━━\n<code>{format_mmk(amount)}</code>")
     except Exception as exc:
         await callback.message.answer(f"❌ Balance စစ်မရပါ။ {exc}")
 
 @router.message(Command("balance"))
 async def balance_command(message: Message) -> None:
     try:
-        data = await api_request("/getMe")
-        await message.answer(f"လက်ကျန်: <code>{float(data.get('balance', 0)):.2f}</code>")
+        await db.ensure_user(message.from_user.id, message.from_user.username, message.from_user.first_name)
+        amount = await db.balance(message.from_user.id)
+        await message.answer(f"လက်ကျန်: <code>{format_mmk(amount)}</code>")
     except Exception as exc:
         await message.answer(f"❌ Balance စစ်မရပါ။ {exc}")
 
@@ -283,14 +285,13 @@ async def approve_recharge(callback: CallbackQuery, bot: Bot) -> None:
         await callback.answer("Admin only", show_alert=True)
         return
     request_id = callback.data.split(":", 1)[1]
-    request = pending_recharges.pop(request_id, None)
+    request = await db.approve_recharge(request_id, callback.from_user.id)
     if not request:
         await callback.answer("Request မရှိတော့ပါ။", show_alert=True)
         return
-    balances[request["user_id"]] = balances.get(request["user_id"], 0) + request["amount"]
     await callback.answer("Approved")
-    await callback.message.edit_caption(caption=f"APPROVED\nUser: {request['user_id']}\nAmount: {format_mmk(request['amount'])}")
-    await bot.send_message(request["user_id"], f"Recharge approved. Balance: {format_mmk(balances[request['user_id']])}")
+    await callback.message.edit_caption(caption=f"APPROVED\nUser: {request['telegram_id']}\nAmount: {format_mmk(request['amount_mmk'])}")
+    await bot.send_message(request["telegram_id"], f"Recharge approved. Balance: {format_mmk(request['balance_mmk'])}")
 
 @router.callback_query(F.data.startswith("recharge_reject:"))
 async def reject_recharge(callback: CallbackQuery, bot: Bot) -> None:
@@ -298,20 +299,31 @@ async def reject_recharge(callback: CallbackQuery, bot: Bot) -> None:
         await callback.answer("Admin only", show_alert=True)
         return
     request_id = callback.data.split(":", 1)[1]
-    request = pending_recharges.pop(request_id, None)
-    if not request:
+    rejected = await db.reject_recharge(request_id, callback.from_user.id)
+    if not rejected:
         await callback.answer("Request မရှိတော့ပါ။", show_alert=True)
         return
     await callback.answer("Rejected")
-    await callback.message.edit_caption(caption=f"REJECTED\nUser: {request['user_id']}\nAmount: {format_mmk(request['amount'])}")
-    await bot.send_message(request["user_id"], "Recharge request ကို admin က reject လုပ်ထားပါတယ်။")
+    await callback.message.edit_caption(caption=f"REJECTED\nRequest ID: {request_id}")
 
 @router.callback_query(TopUp.confirming, F.data == "confirm")
 async def confirm_order(callback: CallbackQuery, state: FSMContext, bot: Bot) -> None:
     data = await state.get_data()
     game, item = data["game"], data["catalogue"]
+    latest = await api_request(f"/games/{game['code']}/catalogue")
+    latest_item = next((x for x in latest.get("catalogues", []) if x.get("name") == item.get("name")), None)
+    if not latest_item:
+        await callback.answer("ဒီ denomination မရတော့ပါ။", show_alert=True)
+        await state.clear()
+        return
+    if float(latest_item.get("amount", 0)) != float(item.get("amount", 0)):
+        await state.update_data(catalogue=latest_item)
+        await callback.answer("စျေးပြောင်းသွားပါပြီ။", show_alert=True)
+        await callback.message.answer(f"Supplier price ပြောင်းသွားပါပြီ။ အသစ်စျေး: {format_mmk(customer_price_mmk(latest_item.get('amount')))}\nConfirm ကို ပြန်နှိပ်ပါ။", reply_markup=confirm_keyboard())
+        return
+    item = latest_item
     price_mmk = customer_price_mmk(item.get("amount"))
-    if balances.get(callback.from_user.id, 0) < price_mmk:
+    if await db.balance(callback.from_user.id) < price_mmk:
         await callback.answer("Balance မလုံလောက်ပါ။", show_alert=True)
         await callback.message.answer(f"Balance မလုံလောက်ပါ။ လိုအပ်သော amount: {format_mmk(price_mmk)}\n/recharge ဖြင့် recharge request တင်ပါ။")
         await state.clear()
@@ -332,7 +344,8 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext, bot: Bot) ->
             f"<b>ORDER RECEIVED</b>\n━━━━━━━━━━━━━━\nOrder ID: <code>{order.get('order_id')}</code>\nGame: {order.get('game', game['name'])}\nItem: {order.get('catalogue', item['name'])}\nStatus: <b>{order.get('status')}</b>\nPrice: {format_mmk(price_mmk)}",
             reply_markup=main_keyboard(),
         )
-        balances[callback.from_user.id] = balances.get(callback.from_user.id, 0) - price_mmk
+        await db.debit_for_order(callback.from_user.id, price_mmk, str(order.get("order_id")))
+        await db.create_order(callback.from_user.id, str(order.get("order_id")), game["code"], game["name"], item["name"], data["player_id"], float(item.get("amount", 0)), USD_TO_MMK_RATE, STORE_MARKUP_PERCENT, price_mmk, str(order.get("status")))
         if ADMIN_CHAT_ID:
             await bot.send_message(ADMIN_CHAT_ID, f"New order {order.get('order_id')}: {game['name']} / {item['name']} / {data['player_id']} / {format_mmk(price_mmk)}")
     except Exception as exc:
@@ -347,6 +360,7 @@ async def cancel_command(message: Message, state: FSMContext) -> None:
 
 async def main() -> None:
     bot = Bot(BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    await db.connect()
     dp = Dispatcher()
     dp.include_router(router)
     await bot.set_my_commands([
@@ -380,7 +394,7 @@ async def main() -> None:
         await asyncio.Event().wait()
     else:
         await dp.start_polling(bot)
+    await db.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
-
