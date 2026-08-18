@@ -1,6 +1,26 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import asyncio
 import os
 import uuid
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -56,6 +76,11 @@ GAMES = [
     Game("zzz", "Zenless Zone Zero", "", "danger"),
     Game("wild_rift_my", "Wild Rift MY", "", "success"),
     Game("solo_leveling", "Solo Leveling: ARISE", "", "primary"),
+    Game("arena_breakout", "Arena Breakout", "", "danger"),
+    Game("bloodstrike", "Blood Strike", "", "success"),
+    Game("marvelrivals", "Marvel Rivals", "", "primary"),
+    Game("magic_chess_gogo", "Magic Chess Gogo", "", "success"),
+    Game("whiteout_survival", "Whiteout Survival", "", "danger"),
 ]
 GAME_MAP = {game.code: game for game in GAMES}
 balances: dict[int, int] = {}
@@ -82,6 +107,41 @@ async def api_request(path: str, method: str = "GET", payload: dict[str, Any] | 
             if response.status >= 400:
                 raise RuntimeError(data.get("message", f"G2Bulk HTTP {response.status}"))
             return data
+
+async def game_fields(code: str) -> tuple[list[str], str]:
+    data = await api_request("/games/fields", method="POST", payload={"game": code})
+    info = data.get("info", {}) if isinstance(data, dict) else {}
+    return list(info.get("fields", ["userid"])), str(info.get("notes", ""))
+
+
+def game_input_prompt(game_name: str, fields: list[str], notes: str = "") -> str:
+    normalized = {str(field).lower() for field in fields}
+    if "serverid" in normalized:
+        prompt = f"<b>{game_name}</b>\n\nGame ID (Server) ကို ပို့ပေးပါ။\nဥပမာ: <code>645163464 (18466)</code>"
+    elif "charname" in normalized:
+        prompt = f"<b>{game_name}</b>\n\nGame ID | Server | Character name ပုံစံနဲ့ ပို့ပေးပါ။\nဥပမာ: <code>645163464 | 18466 | PlayerName</code>"
+    else:
+        prompt = f"<b>{game_name}</b>\n\nGame ID ကို ပို့ပေးပါ။\nဥပမာ: <code>46644694</code>"
+    if notes:
+        prompt += f"\n\nမှတ်ချက်: {notes}"
+    return prompt
+
+
+def parse_game_input(raw: str, fields: list[str]) -> dict[str, str]:
+    normalized = {str(field).lower() for field in fields}
+    value = raw.strip()
+    if "charname" in normalized:
+        parts = [part.strip() for part in value.split("|")]
+        if len(parts) < 3 or not all(parts[:3]):
+            raise ValueError("Game ID | Server | Character name ပုံစံနဲ့ ပို့ပါ။")
+        return {"player_id": parts[0], "server_id": parts[1], "charname": parts[2]}
+    if "serverid" in normalized:
+        match = re.match(r"^\s*(\S+)\s*\(([^)]+)\)\s*$", value)
+        if not match:
+            raise ValueError("Game ID (Server) ကို 645163464 (18466) ပုံစံနဲ့ ပို့ပါ။")
+        return {"player_id": match.group(1), "server_id": match.group(2).strip()}
+    return {"player_id": value}
+
 
 def button(text: str, callback: str, style: str | None = None) -> InlineKeyboardButton:
     return InlineKeyboardButton(text=text, callback_data=callback, style=style)
@@ -126,16 +186,20 @@ def confirm_keyboard() -> InlineKeyboardMarkup:
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext) -> None:
     await state.clear()
-    await db.ensure_user(message.from_user.id, message.from_user.username, message.from_user.first_name)
+    try:
+        await db.ensure_user(message.from_user.id, message.from_user.username, message.from_user.first_name)
+    except Exception as exc:
+        # Do not block the Telegram Start response if the database is temporarily unavailable.
+        print(f"start user registration warning: {exc}")
     await message.answer(
-        f"<b>GAME TOP-UP STORE</b>\n━━━━━━━━━━━━━━\nမင်္ဂလာပါ {message.from_user.first_name}!\n\nFast • Safe • Reliable\nGame ၁၅ ခုအတွက် top-up order တင်နိုင်ပါတယ်။",
+        f"<b>GAME TOP-UP STORE</b>\n━━━━━━━━━━━━━━\nမင်္ဂလာပါ {message.from_user.first_name}!\n\nFast • Safe • Reliable\nGame ၂၀ ခုအတွက် top-up order တင်နိုင်ပါတယ်။",
         reply_markup=main_keyboard(),
     )
 
 @router.message(Command("games"))
 @router.callback_query(F.data == "games")
 async def show_games(event: Message | CallbackQuery) -> None:
-    text = "<b>GAME STORE</b>\n━━━━━━━━━━━━━━\nGame ၁၅ ခုထဲက ရွေးပါ။\n\n" + "\n".join(f"{i + 1}. {g.name}" for i, g in enumerate(GAMES))
+    text = "<b>GAME STORE</b>\n━━━━━━━━━━━━━━\nGame ၂၀ ခုထဲက ရွေးပါ။\n\n" + "\n".join(f"{i + 1}. {g.name}" for i, g in enumerate(GAMES))
     if isinstance(event, CallbackQuery):
         await event.answer()
         await event.message.edit_text(text + "\n\nအောက်က button ကိုနှိပ်ပါ။", reply_markup=games_keyboard())
@@ -241,18 +305,24 @@ async def choose_game(callback: CallbackQuery, state: FSMContext) -> None:
         if not items:
             await callback.answer("Catalogue မရှိသေးပါ။", show_alert=True)
             return
-        await state.update_data(game=game.__dict__, catalogues=items)
+        fields, notes = await game_fields(code)
+        await state.update_data(game=game.__dict__, catalogues=items, fields=fields, field_notes=notes)
         await state.set_state(TopUp.waiting_player_id)
         await callback.answer()
-        await callback.message.answer(f"<b>{game.name}</b>\n━━━━━━━━━━━━━━\nPlayer ID ကို ပို့ပါ။")
+        await callback.message.answer(game_input_prompt(game.name, fields, notes))
     except Exception as exc:
         await callback.answer("API error", show_alert=True)
         await callback.message.answer(f"Catalogue မရပါ။ {exc}")
 
 @router.message(TopUp.waiting_player_id)
 async def receive_player_id(message: Message, state: FSMContext) -> None:
-    await state.update_data(player_id=message.text.strip())
     data = await state.get_data()
+    try:
+        parsed = parse_game_input(message.text or "", data.get("fields", ["userid"]))
+    except ValueError as exc:
+        await message.answer(str(exc))
+        return
+    await state.update_data(**parsed)
     await state.set_state(TopUp.waiting_denomination)
     await message.answer("<b>DENOMINATION ရွေးပါ</b>", reply_markup=catalogue_keyboard(data["catalogues"]))
 
@@ -269,7 +339,7 @@ async def choose_denomination(callback: CallbackQuery, state: FSMContext) -> Non
     game = data["game"]
     await callback.answer()
     await callback.message.answer(
-        f"<b>ORDER SUMMARY</b>\n━━━━━━━━━━━━━━\nGame: {game['name']}\nPlayer ID: <code>{data['player_id']}</code>\nItem: {item['name']}\nPrice: <b>{format_mmk(customer_price_mmk(item.get('amount')))}</b>\n━━━━━━━━━━━━━━\nအချက်အလက်မှန်ပါက Confirm နှိပ်ပါ။",
+        f"<b>ORDER SUMMARY</b>\n━━━━━━━━━━━━━━\nGame: {game['name']}\nPlayer ID: <code>{data['player_id']}</code>\n" + (f"Server: <code>{data['server_id']}</code>\n" if data.get('server_id') else "") + (f"Character: <code>{data['charname']}</code>\n" if data.get('charname') else "") + f"Item: {item['name']}\nPrice: <b>{format_mmk(customer_price_mmk(item.get('amount')))}</b>\n━━━━━━━━━━━━━━\nအချက်အလက်မှန်ပါက Confirm နှိပ်ပါ။",
         reply_markup=confirm_keyboard(),
     )
 
@@ -336,6 +406,8 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext, bot: Bot) ->
             payload={
                 "catalogue_name": item["name"],
                 "player_id": data["player_id"],
+                **({"server_id": data["server_id"]} if data.get("server_id") else {}),
+                **({"charname": data["charname"]} if data.get("charname") else {}),
                 "remark": f"Telegram user {callback.from_user.id}",
             },
         )
@@ -398,3 +470,4 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
+
