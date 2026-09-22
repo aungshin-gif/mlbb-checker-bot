@@ -1,343 +1,307 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="my">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aura Coach — Focus & Daily Rhythm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Aura Coach — Focus & Physics Journal</title>
+  <!-- App Mode Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#FAF9F6">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;1,6..72,400&family=Pyidaungsu:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Pyidaungsu:wght@400;600&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --bg: #0C0E12;
-      --surface: #14171F;
-      --surface-elevated: #1B202B;
-      --border: #262D3D;
-      --border-subtle: rgba(255, 255, 255, 0.06);
-      --text-main: #F3F4F6;
-      --text-muted: #9CA3AF;
-      --text-light: #6B7280;
-      --terracotta: #E07A5F;
-      --terracotta-glow: rgba(224, 122, 95, 0.25);
-      --accent-blue: #3B82F6;
-      --accent-green: #10B981;
-      --radius-lg: 16px;
-      --radius-md: 10px;
-      --radius-sm: 6px;
+      /* Claude AI Signature Warm Editorial Palette */
+      --bg-base: #FAF9F6;
+      --surface: #FFFFFF;
+      --surface-subtle: #F4F1EA;
+      --border: #E5E1D8;
+      --border-focus: #D0C9B8;
+      --text-main: #232220;
+      --text-muted: #66635C;
+      --text-light: #9B988E;
+      --terracotta: #C96442;
+      --terracotta-soft: rgba(201, 100, 66, 0.1);
+      --font-serif: "Newsreader", "Pyidaungsu", Georgia, serif;
       --font-sans: "Plus Jakarta Sans", "Pyidaungsu", -apple-system, sans-serif;
-      --font-serif: "Newsreader", Georgia, serif;
+      --shadow: 0 4px 20px rgba(35, 34, 32, 0.04), 0 1px 3px rgba(35, 34, 32, 0.02);
+      --radius: 14px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background-color: var(--bg);
+      background-color: var(--bg-base);
       color: var(--text-main);
       font-family: var(--font-sans);
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 32px 16px 80px;
-      line-height: 1.5;
+      padding: 24px 16px 80px;
+      line-height: 1.55;
       -webkit-font-smoothing: antialiased;
     }
 
-    .dashboard-container {
+    .app-shell {
       width: 100%;
-      max-width: 760px;
+      max-width: 720px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
     }
 
-    /* Top Navigation Bar */
-    .nav-bar {
+    /* Top App Bar */
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 18px;
+      padding: 14px 18px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
     }
-    .brand {
+    .brand-mark {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .brand-icon {
-      width: 32px;
-      height: 32px;
+    .brand-dot {
+      width: 14px;
+      height: 14px;
       background: var(--terracotta);
-      border-radius: 8px;
+      border-radius: 50%;
+    }
+    .brand-name {
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    .date-control {
       display: flex;
       align-items: center;
-      justify-content: center;
-      color: #fff;
-    }
-    .brand-title {
-      font-weight: 700;
-      font-size: 1.05rem;
-      letter-spacing: -0.02em;
-    }
-    .brand-title span {
-      color: var(--terracotta);
-      font-weight: 400;
-      font-size: 0.85rem;
-      margin-left: 6px;
-      border-left: 1px solid var(--border);
-      padding-left: 8px;
-    }
-    .nav-controls {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .date-pill {
-      background: var(--surface-elevated);
+      background: var(--surface-subtle);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 5px 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.8rem;
+      padding: 4px 12px;
     }
-    .date-pill input {
+    .date-control input {
       border: none;
       background: transparent;
-      color: var(--text-main);
       font-family: var(--font-sans);
-      font-size: 0.8rem;
+      font-size: 0.82rem;
+      color: var(--text-main);
       outline: none;
       cursor: pointer;
     }
 
-    /* AI Coach Widget */
-    .coach-widget {
-      background: linear-gradient(135deg, rgba(224, 122, 95, 0.08) 0%, rgba(20, 23, 31, 0.95) 100%);
-      border: 1px solid rgba(224, 122, 95, 0.25);
-      border-radius: var(--radius-lg);
-      padding: 18px 20px;
+    /* Coach Status & Chain-Alarm Indicator */
+    .coach-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
       display: flex;
       flex-direction: column;
       gap: 12px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
     }
     .coach-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-    .coach-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
+      color: var(--terracotta);
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--terracotta);
     }
-    .pulse-dot {
-      width: 7px;
-      height: 7px;
-      background: var(--terracotta);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--terracotta);
-      animation: pulse 1.8s infinite;
-    }
-    @keyframes pulse {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(224,122,95,0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(224,122,95,0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(224,122,95,0); }
-    }
-    .coach-msg {
+    .coach-quote {
       font-family: var(--font-serif);
-      font-size: 1.05rem;
-      color: #E2E8F0;
+      font-size: 1.08rem;
+      color: var(--text-main);
       line-height: 1.45;
     }
-    .coach-stats {
+    .chain-alarm-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.8rem;
+      background: var(--surface-subtle);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
       color: var(--text-muted);
-      border-top: 1px solid var(--border-subtle);
-      padding-top: 10px;
     }
-    .progress-bar-container {
-      width: 130px;
-      height: 6px;
-      background: var(--surface-elevated);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: var(--terracotta);
-      transition: width 0.4s ease;
-    }
-
-    /* Schedule Section */
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 6px;
-    }
-    .section-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-    .audio-toggle-btn {
+    .btn-test {
       background: var(--surface);
       border: 1px solid var(--border);
-      color: var(--text-muted);
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: 0.78rem;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.75rem;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
+      color: var(--text-main);
     }
-    .audio-toggle-btn:hover { color: var(--text-main); border-color: var(--text-muted); }
 
-    .routine-list {
+    /* Schedule Feed */
+    .schedule-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .routine-container {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-    .routine-item {
+    .routine-box {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 14px 18px;
+      border-radius: var(--radius);
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      transition: all 0.25s ease;
+      transition: all 0.2s ease;
+      box-shadow: var(--shadow);
     }
-    .routine-item:hover {
-      border-color: rgba(255, 255, 255, 0.15);
-      background: #171B24;
-    }
-    .routine-item.current-active {
+    .routine-box.active-step {
       border-color: var(--terracotta);
-      box-shadow: 0 0 16px var(--terracotta-glow);
-      background: #191E29;
+      background: #FFFDFC;
+      box-shadow: 0 4px 16px rgba(201, 100, 66, 0.12);
     }
     .routine-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .routine-title-input {
-      font-size: 0.96rem;
+    .routine-title {
       font-weight: 600;
-      color: var(--text-main);
-      background: transparent;
+      font-size: 0.95rem;
       border: none;
+      background: transparent;
       outline: none;
+      color: var(--text-main);
       width: 60%;
     }
-    .routine-title-input:focus {
-      border-bottom: 1px dashed var(--terracotta);
-    }
-    .time-badge {
+    .routine-title:focus { border-bottom: 1px dashed var(--terracotta); }
+    .time-slot {
       display: flex;
       align-items: center;
       gap: 4px;
-      background: var(--surface-elevated);
+      background: var(--surface-subtle);
       border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
       padding: 3px 8px;
+      border-radius: 6px;
       font-size: 0.78rem;
-      color: var(--text-muted);
     }
-    .time-badge input {
-      background: transparent;
+    .time-slot input {
       border: none;
-      color: var(--text-main);
+      background: transparent;
       font-size: 0.78rem;
+      color: var(--text-main);
       outline: none;
       cursor: pointer;
     }
-    .item-del-btn {
-      background: none;
+    .routine-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
       border: none;
+      background: transparent;
+      outline: none;
+      width: 100%;
+    }
+    .routine-desc:focus { color: var(--text-main); border-bottom: 1px solid var(--border-focus); }
+    .btn-del {
+      border: none;
+      background: none;
       color: var(--text-light);
       cursor: pointer;
       font-size: 0.85rem;
       margin-left: 6px;
     }
-    .item-del-btn:hover { color: #EF4444; }
-    .routine-desc-input {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      background: transparent;
-      border: none;
-      outline: none;
-      width: 100%;
-    }
-    .routine-desc-input:focus {
-      color: var(--text-main);
-      border-bottom: 1px solid var(--border);
-    }
+    .btn-del:hover { color: #dc2626; }
 
-    .btn-add-task {
-      width: 100%;
+    .btn-add-block {
       background: transparent;
       border: 1px dashed var(--border);
-      border-radius: var(--radius-md);
-      color: var(--text-muted);
+      border-radius: var(--radius);
       padding: 12px;
-      font-size: 0.85rem;
+      color: var(--text-muted);
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+      font-size: 0.85rem;
       transition: all 0.2s;
     }
-    .btn-add-task:hover {
-      border-color: var(--terracotta);
-      color: var(--terracotta);
-      background: rgba(224, 122, 95, 0.03);
-    }
+    .btn-add-block:hover { border-color: var(--terracotta); color: var(--terracotta); background: #fff; }
 
-    /* Stylus & Pen Canvas Section */
-    .pen-section {
+    /* Enlarged Dual NotePad (Typing + Stylus Canvas) */
+    .notepad-panel {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 20px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      overflow: hidden;
     }
-    .pen-toolbar {
+    .notepad-tabs {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
+      padding: 12px 18px;
+      background: var(--surface-subtle);
+      border-bottom: 1px solid var(--border);
     }
-    .pen-tools-left {
+    .tab-pills {
+      display: flex;
+      gap: 6px;
+    }
+    .tab-pill {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .tab-pill.active {
+      background: var(--terracotta);
+      border-color: var(--terracotta);
+      color: #fff;
+    }
+    .canvas-actions {
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .pen-color-pick {
-      -webkit-appearance: none;
+    .canvas-actions input[type="color"] {
       border: none;
       width: 24px;
       height: 24px;
@@ -345,380 +309,368 @@
       cursor: pointer;
       background: none;
     }
-    .pen-color-pick::-webkit-color-swatch {
-      border: 1px solid var(--border);
-      border-radius: 50%;
-    }
-    .tool-btn {
-      background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 4px 10px;
-      border-radius: var(--radius-sm);
-      font-size: 0.78rem;
-      cursor: pointer;
-    }
-    .tool-btn.active {
-      background: var(--terracotta);
-      color: #fff;
-      border-color: var(--terracotta);
-    }
-    .tool-btn:hover:not(.active) { color: var(--text-main); }
 
-    /* Canvas Grid & Paper Design */
-    .canvas-wrapper {
-      position: relative;
+    /* Type Editor Area */
+    #textPadArea {
       width: 100%;
-      height: 380px;
-      background-color: #0A0C10;
-      background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-      background-size: 24px 24px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      overflow: hidden;
+      min-height: 480px;
+      padding: 24px;
+      border: none;
+      outline: none;
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      line-height: 1.8;
+      color: var(--text-main);
+      background-color: var(--surface);
+      background-image: linear-gradient(#F0EDE6 1px, transparent 1px);
+      background-size: 100% 36px;
+      resize: vertical;
     }
-    #handwritingCanvas {
+
+    /* Canvas Drawing Area */
+    #canvasContainer {
+      width: 100%;
+      height: 480px;
+      position: relative;
+      display: none;
+      background-color: #FAF8F4;
+      background-image: 
+        linear-gradient(to right, #EFECE3 1px, transparent 1px),
+        linear-gradient(to bottom, #EFECE3 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    #drawCanvas {
       width: 100%;
       height: 100%;
       touch-action: none;
       cursor: crosshair;
     }
 
-    /* Modal / Alert Notification */
-    .toast-modal {
+    /* Chain Alarm Banner (Popup) */
+    .alert-banner {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: #1E2330;
-      border: 1px solid var(--terracotta);
-      border-radius: var(--radius-md);
-      padding: 14px 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface);
+      border: 2px solid var(--terracotta);
+      border-radius: 30px;
+      padding: 12px 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
       display: none;
       align-items: center;
       gap: 12px;
-      z-index: 1000;
-      animation: slideUp 0.3s ease;
+      z-index: 10000;
+      animation: popIn 0.3s ease;
     }
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    @keyframes popIn {
+      from { transform: translate(-50%, -20px); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
     }
   </style>
 </head>
 <body>
 
-<div class="dashboard-container">
-  <!-- Top Navigation -->
-  <nav class="nav-bar">
-    <div class="brand">
-      <div class="brand-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-      </div>
-      <div class="brand-title">AURA<span>PHYSICS ARCHITECT</span></div>
+<div class="app-shell">
+  <!-- Top App Navigation -->
+  <header class="top-bar">
+    <div class="brand-mark">
+      <div class="brand-dot"></div>
+      <div class="brand-name">Rhythm & Focus</div>
     </div>
-    <div class="nav-controls">
-      <div class="date-pill">
-        <input type="date" id="systemDate">
-      </div>
+    <div class="date-control">
+      <input type="date" id="appDate">
     </div>
-  </nav>
+  </header>
 
-  <!-- Dynamic AI Coach Panel -->
-  <section class="coach-widget">
+  <!-- Dynamic Coach & Alarm Status -->
+  <section class="coach-card">
     <div class="coach-header">
-      <div class="coach-badge">
-        <span class="pulse-dot"></span> Coach Live Briefing
-      </div>
-      <span id="currentTimeDisplay" style="font-size: 0.8rem; color: var(--text-muted);">00:00:00</span>
+      <span>AI Coach Assistant</span>
+      <span id="liveClock">00:00:00</span>
     </div>
-    <div class="coach-msg" id="coachAdvice">
-      "Concept တစ်ခုကို အလွတ်မကျက်ပါနဲ့။ စက္ကူတစ်ရွက်ပေါ်မှာ ပုံဆွဲပြီး သူငယ်ချင်းတစ်ယောက်ကို နားလည်အောင် ရှင်းပြနိုင်တဲ့အထိ လေ့ကျင့်ပါ။"
+    <div class="coach-quote" id="coachPhrase">
+      “Physics ဆိုတာ သင်္ချာသင်္ကေတတွေထက် သဘာဝတရား ဘယ်လို အလုပ်လုပ်သလဲဆိုတာကို နားလည်အောင် တွေးဆခြင်း ဖြစ်တယ်။”
     </div>
-    <div class="coach-stats">
-      <span id="activeStatusMsg">အဆင်သင့်ဖြစ်နေပါပြီ</span>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span id="dayProgressPercent" style="font-size: 0.75rem;">0% Day Passed</span>
-        <div class="progress-bar-container">
-          <div class="progress-bar-fill" id="progressBar"></div>
-        </div>
-      </div>
+    <div class="chain-alarm-bar">
+      <span id="activeSlotStatus">🔔 Chain Alarm Active: တစ်ခုပြီးတိုင်း အသံမြည်ပေးပါမည်</span>
+      <button class="btn-test" onclick="testAudio()">အသံစမ်းရန်</button>
     </div>
   </section>
 
-  <!-- Schedule Routine Header -->
-  <div class="section-header">
-    <span class="section-title">Operational Schedule</span>
-    <button class="audio-toggle-btn" id="audioToggle" onclick="testAlarm()">
-      🔔 Alarm Sound Test
-    </button>
+  <!-- Flexible Schedule Blocks -->
+  <div class="schedule-header">
+    <span>TODAY'S OPERATIONAL BLOCKS</span>
   </div>
+  <div class="routine-container" id="scheduleList"></div>
+  <button class="btn-add-block" onclick="addCustomTask()">+ Add Next Routine Topic</button>
 
-  <!-- Routine Blocks Feed -->
-  <div class="routine-list" id="routineContainer"></div>
-
-  <button class="btn-add-task" onclick="createBlock()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Add Custom Block / Topic
-  </button>
-
-  <!-- Handwriting Stylus Notebook -->
-  <section class="pen-section">
-    <div class="pen-toolbar">
-      <div style="font-weight: 600; font-size: 0.95rem;">✒️ Engineering Canvas & Reflection</div>
-      <div class="pen-tools-left">
-        <input type="color" id="penColor" class="pen-color-pick" value="#E07A5F">
-        <button class="tool-btn active" id="btnPenFine" onclick="setStroke(2, this)">Fine (2px)</button>
-        <button class="tool-btn" id="btnPenMedium" onclick="setStroke(4, this)">Medium (4px)</button>
-        <button class="tool-btn" onclick="clearPenCanvas()">Clear</button>
-        <button class="tool-btn" onclick="downloadCanvas()">Export PNG</button>
+  <!-- Spacious Dual NotePad (Typing + Pen Canvas) -->
+  <section class="notepad-panel">
+    <div class="notepad-tabs">
+      <div class="tab-pills">
+        <button class="tab-pill active" id="tabType" onclick="switchMode('type')">✍️ Type Notes</button>
+        <button class="tab-pill" id="tabDraw" onclick="switchMode('draw')">✒️ Stylus Canvas</button>
+      </div>
+      <div class="canvas-actions" id="canvasTools" style="display: none;">
+        <input type="color" id="inkColor" value="#232220">
+        <button class="btn-test" onclick="setInk(2)">Fine (2px)</button>
+        <button class="btn-test" onclick="setInk(4)">Pen (4px)</button>
+        <button class="btn-test" onclick="clearCanvasDraw()">Clear</button>
       </div>
     </div>
-    <div class="canvas-wrapper">
-      <canvas id="handwritingCanvas"></canvas>
+
+    <!-- Text Typing System -->
+    <textarea id="textPadArea" placeholder="ဒီနေရာမှာ စာရိုက်၍ သင်ခန်းစာ အကျဉ်းချုပ်များနှင့် Feynman Reflection များကို ရေးသားနိုင်ပါသည်..."></textarea>
+
+    <!-- Stylus Drawing System -->
+    <div id="canvasContainer">
+      <canvas id="drawCanvas"></canvas>
     </div>
   </section>
 </div>
 
-<!-- Alarm Toast Notification -->
-<div class="toast-modal" id="alarmToast">
-  <span style="font-size: 1.3rem;">🔔</span>
+<!-- Chain Alarm Popup Modal -->
+<div class="alert-banner" id="chainAlert">
+  <span style="font-size: 1.4rem;">🔔</span>
   <div>
-    <div style="font-weight: 600; font-size: 0.9rem;" id="toastTitle">Routine Trigger</div>
-    <div style="font-size: 0.8rem; color: var(--text-muted);" id="toastDesc">Scheduled time activated.</div>
+    <div style="font-weight: 700; font-size: 0.95rem; color: var(--terracotta);" id="alertHead">Time Completed!</div>
+    <div style="font-size: 0.85rem; color: var(--text-main);" id="alertNext">Next step is now active.</div>
   </div>
 </div>
 
 <script>
-  // Initial Schedule Schema
+  // Initial Routine Schema
   const defaultRoutine = [
-    { title: "🌅 Morning Kickstart & Routine", start: "06:00", end: "07:00", desc: "နိုးထ၊ သွားတိုက်၊ ရေချိုး၊ မနက်စာ စားသောက်ပြီး စိတ်ကြည်လင်စေခြင်း" },
-    { title: "📚 Core Deep Study (Physics)", start: "07:00", end: "09:30", desc: "နားမလည်သေးသော Concept များကို YouTube Visuals & Khan Academy ဖြင့် လေ့လာခြင်း" },
-    { title: "🏫 Campus Lectures / Midday", start: "09:30", end: "13:00", desc: "ကျောင်းချိန် / နေ့လယ်စာ စားသောက်ချိန်နှင့် ပေါ့ပါးစွာ နားနေခြင်း" },
-    { title: "✍️ Problem Solving Workshop", start: "13:00", end: "15:30", desc: "လက်တွေ့ ပုစ္ဆာတွက်ခြင်း၊ Formula derivations များ လက်ရေးဖြင့် လေ့ကျင့်ခြင်း" },
-    { title: "⚡ Rest & Personal Growth", start: "15:30", end: "18:30", desc: "အင်္ဂလိပ်စာ၊ စာအုပ်ဖတ်ရှုခြင်း၊ ကိုယ်လက်လှုပ်ရှား အနားယူခြင်း" },
-    { title: "🍲 Dinner & Family Time", start: "18:30", end: "20:00", desc: "ညစာစားခြင်း၊ စိတ်ဖိစီးမှု လျှော့ချခြင်း" },
-    { title: "🔄 Feynman Review & Synthesis", start: "20:00", end: "22:30", desc: "ဒီနေ့သင်ယူခဲ့သည်များကို Canvas ပေါ်တွင် ပုံဆွဲပြီး ပြန်လည်ရှင်းပြကြည့်ခြင်း" },
-    { title: "😴 Restorative Sleep (7 Hrs)", start: "23:00", end: "06:00", desc: "ဖုန်းပိတ်၊ မီးမှိန်ပြီး ဦးနှောက်ကို အပြည့်အဝ အနားပေးခြင်း" }
+    { title: "🌅 Morning Kickstart", start: "06:00", end: "07:00", desc: "နိုးထ၊ မျက်နှာသစ်၊ ရေချိုး၊ မနက်စာပြင်ဆင်စားသောက်ခြင်း" },
+    { title: "📚 Core Deep Study (Physics)", start: "07:00", end: "09:30", desc: "နားမလည်သော Theory နှင့် Concept များကို YouTube Visuals ဖြင့် ကြည့်ရှုလေ့လာခြင်း" },
+    { title: "🏫 Campus Lectures / Midday", start: "09:30", end: "13:00", desc: "ကျောင်းတက်ခြင်း / နေ့လယ်စာ / ခေတ္တအနားယူခြင်း" },
+    { title: "✍️ Problem Solving & Derivations", start: "13:00", end: "15:30", desc: "ပုစ္ဆာများတွက်ခြင်း၊ Stylus Canvas ပေါ်တွင် လက်ရေးဖြင့် တွက်ချက်ခြင်း" },
+    { title: "⚡ Rest & Personal Growth", start: "15:30", end: "18:30", desc: "အင်္ဂလိပ်စာ၊ စာအုပ်ဖတ်ခြင်း၊ လမ်းလျှောက်ခြင်း" },
+    { title: "🍲 Dinner & Family Time", start: "18:30", end: "20:00", desc: "ညစာစားခြင်း၊ စိတ်လက်အပန်းဖြေခြင်း" },
+    { title: "🔄 Feynman Synthesis Review", start: "20:00", end: "22:30", desc: "ဒီနေ့သင်ယူခဲ့သည်များကို အသံထွက်ပြီး ပြန်လည်ရှင်းပြခြင်း" },
+    { title: "😴 Restorative Sleep (7 Hours)", start: "23:00", end: "06:00", desc: "ဖုန်းပိတ်၊ အိပ်ရာဝင်ပြီး ဦးနှောက်ကို အပြည့်အဝ အားပြန်ဖြည့်ခြင်း" }
   ];
 
-  let routines = JSON.parse(localStorage.getItem('aura_routines')) || defaultRoutine;
+  let routines = JSON.parse(localStorage.getItem('rhythm_routines')) || defaultRoutine;
 
-  // Sound Engine (Web Audio API Synthesizer)
+  // Sound Engine (Web Audio Synth - Double Chime)
   let audioCtx = null;
-  function triggerChime() {
+  function playHarmonicChime() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const now = audioCtx.currentTime;
-    
-    // Two-tone chime (800Hz -> 1000Hz)
+
     const osc1 = audioCtx.createOscillator();
     const osc2 = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
+    const gainNode = audioCtx.createGain();
 
-    osc1.frequency.setValueAtTime(784, now); // G5
-    osc2.frequency.setValueAtTime(1046.5, now + 0.15); // C6
+    osc1.frequency.setValueAtTime(659.25, now); // E5
+    osc2.frequency.setValueAtTime(880, now + 0.15); // A5
 
-    gain.gain.setValueAtTime(0.3, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+    gainNode.gain.setValueAtTime(0.3, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
 
-    osc1.connect(gain);
-    osc2.connect(gain);
-    gain.connect(audioCtx.destination);
+    osc1.connect(gainNode);
+    osc2.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
 
     osc1.start(now);
     osc1.stop(now + 0.2);
     osc2.start(now + 0.15);
-    osc2.stop(now + 1.2);
+    osc2.stop(now + 1.4);
   }
 
-  function showToast(title, desc) {
-    const toast = document.getElementById('alarmToast');
-    document.getElementById('toastTitle').innerText = title;
-    document.getElementById('toastDesc').innerText = desc;
-    toast.style.display = 'flex';
-    setTimeout(() => toast.style.display = 'none', 6000);
+  function triggerChainAlarm(completedTask, nextTask) {
+    playHarmonicChime();
+    const banner = document.getElementById('chainAlert');
+    document.getElementById('alertHead').innerText = `အချိန်ပြည့်ပါပြီ: ${completedTask}`;
+    document.getElementById('alertNext').innerText = `နောက်တစ်ခုစတင်ပါပြီ: ${nextTask}`;
+    banner.style.display = 'flex';
+    setTimeout(() => { banner.style.display = 'none'; }, 8000);
   }
 
-  function testAlarm() {
-    triggerChime();
-    showToast("🔔 Alarm System Active", "အသံနှင့် သတိပေးချက်စနစ် ကောင်းမွန်စွာ အလုပ်လုပ်နေပါသည်။");
+  function testAudio() {
+    playHarmonicChime();
+    triggerChainAlarm("စမ်းသပ်မှု ပြီးဆုံး", "စာလေ့လာရန် အသင့်ဖြစ်ပါပြီ");
   }
 
   // Render & Persistence
-  function renderRoutine() {
-    const list = document.getElementById('routineContainer');
+  function renderSchedule() {
+    const list = document.getElementById('scheduleList');
     list.innerHTML = '';
-    
     routines.forEach((item, index) => {
-      const el = document.createElement('div');
-      el.className = 'routine-item';
-      el.id = `routine-${index}`;
-      el.innerHTML = `
+      const card = document.createElement('div');
+      card.className = 'routine-box';
+      card.id = `step-${index}`;
+      card.innerHTML = `
         <div class="routine-top">
-          <input class="routine-title-input" value="${item.title}" onchange="editRoutine(${index}, 'title', this.value)">
+          <input class="routine-title" value="${item.title}" onchange="editTask(${index}, 'title', this.value)">
           <div style="display:flex; align-items:center;">
-            <div class="time-badge">
-              <input type="time" value="${item.start}" onchange="editRoutine(${index}, 'start', this.value)">
+            <div class="time-slot">
+              <input type="time" value="${item.start}" onchange="editTask(${index}, 'start', this.value)">
               <span>→</span>
-              <input type="time" value="${item.end}" onchange="editRoutine(${index}, 'end', this.value)">
+              <input type="time" value="${item.end}" onchange="editTask(${index}, 'end', this.value)">
             </div>
-            <button class="item-del-btn" onclick="deleteBlock(${index})">✕</button>
+            <button class="btn-del" onclick="deleteTask(${index})">✕</button>
           </div>
         </div>
-        <input class="routine-desc-input" value="${item.desc}" onchange="editRoutine(${index}, 'desc', this.value)">
+        <input class="routine-desc" value="${item.desc}" onchange="editTask(${index}, 'desc', this.value)">
       `;
-      list.appendChild(el);
+      list.appendChild(card);
     });
   }
 
-  function editRoutine(index, key, val) {
-    routines[index][key] = val;
-    localStorage.setItem('aura_routines', JSON.stringify(routines));
+  function editTask(index, field, value) {
+    routines[index][field] = value;
+    localStorage.setItem('rhythm_routines', JSON.stringify(routines));
   }
 
-  function createBlock() {
-    routines.push({ title: "New Task Block", start: "12:00", end: "13:00", desc: "Session topic and goal" });
-    localStorage.setItem('aura_routines', JSON.stringify(routines));
-    renderRoutine();
+  function addCustomTask() {
+    routines.push({ title: "Task Block အသစ်", start: "12:00", end: "13:00", desc: "ဒီအပိုင်းမှာ လုပ်ဆောင်မည့် အကြောင်းအရာ" });
+    localStorage.setItem('rhythm_routines', JSON.stringify(routines));
+    renderSchedule();
   }
 
-  function deleteBlock(index) {
+  function deleteTask(index) {
     routines.splice(index, 1);
-    localStorage.setItem('aura_routines', JSON.stringify(routines));
-    renderRoutine();
+    localStorage.setItem('rhythm_routines', JSON.stringify(routines));
+    renderSchedule();
   }
 
-  // Coach Insights based on Routine & Clock
-  const coachWisdom = [
-    "“Physics ကို စာအုပ်ကြီးအတိုင်း မဖတ်ပါနဲ့၊ Visualizing (မျက်စိထဲ ပုံဖော်တွေးဆခြင်း) က သင်ယူမှုရဲ့ ၈၀% ပါ။”",
-    "“Concept တစ်ခု မရှင်းမချင်း နောက်တစ်ခုကို အလောတကြီး မကူးပါနဲ့။ အခြေခံခိုင်မာခြင်းက အမြင့်ဆုံးဆီ ရောက်စေပါတယ်။”",
-    "“ပုစ္ဆာမထွက်တာ ကျရှုံးတာမဟုတ်ဘူး၊ ဦးနှောက်က လမ်းကြောင်းသစ် ရှာဖွေနေတာဖြစ်တယ်။ စိတ်ရှည်ပါ။”",
-    "“Feynman နည်းလမ်းအတိုင်း ရှင်းပြရခက်နေတဲ့နေရာဟာ ကိုယ်မသိသေးတဲ့ အားနည်းချက်ပါပဲ။ အဲဒီနေရာကို ပြန်ဖတ်ပါ။”"
-  ];
+  // Live Tracking & Chain Alarm Clock
+  let notifiedTransition = new Set();
 
-  let alertedSlots = new Set();
-
-  function updateSystemClock() {
+  function tickSystem() {
     const now = new Date();
-    const timeStr = now.toTimeString().split(' ')[0];
-    document.getElementById('currentTimeDisplay').innerText = timeStr;
-
-    // Day Progress %
-    const totalMinutes = now.getHours() * 60 + now.getMinutes();
-    const percent = Math.round((totalMinutes / 1440) * 100);
-    document.getElementById('progressBar').style.width = percent + '%';
-    document.getElementById('dayProgressPercent').innerText = `${percent}% Day Elapsed`;
-
-    // Routine highlight & Alarm check
+    document.getElementById('liveClock').innerText = now.toTimeString().split(' ')[0];
     const currentHM = now.toTimeString().slice(0, 5);
-    let activeTaskFound = false;
 
-    routines.forEach((r, idx) => {
-      const blockEl = document.getElementById(`routine-${idx}`);
-      if (!blockEl) return;
+    let activeFound = false;
 
-      if (currentHM >= r.start && currentHM < r.end) {
-        blockEl.classList.add('current-active');
-        document.getElementById('activeStatusMsg').innerText = `Active: ${r.title}`;
-        activeTaskFound = true;
+    routines.forEach((task, idx) => {
+      const el = document.getElementById(`step-${idx}`);
+      if (!el) return;
+
+      if (currentHM >= task.start && currentHM < task.end) {
+        el.classList.add('active-step');
+        document.getElementById('activeSlotStatus').innerText = `⚡ လက်ရှိ လုပ်ဆောင်နေသည်: ${task.title}`;
+        activeFound = true;
       } else {
-        blockEl.classList.remove('current-active');
+        el.classList.remove('active-step');
       }
 
-      // Trigger Start Alarm
-      if (r.start === currentHM && !alertedSlots.has(r.start)) {
-        triggerChime();
-        showToast("⏰ Schedule Started", r.title);
-        alertedSlots.add(r.start);
+      // Chain Alarm: Task transition trigger
+      if (task.end === currentHM && !notifiedTransition.has(task.end)) {
+        const next = routines[idx + 1] ? routines[idx + 1].title : "Rest of Day Flow";
+        triggerChainAlarm(task.title, next);
+        notifiedTransition.add(task.end);
       }
     });
 
-    if (!activeTaskFound) {
-      document.getElementById('activeStatusMsg').innerText = "All Clear / Free Flow Time";
+    if (!activeFound) {
+      document.getElementById('activeSlotStatus').innerText = "🔔 Chain Alarm Active: အချိန်ဇယားအတိုင်း အသံမြည်ပါမည်";
     }
 
-    if (now.getSeconds() === 0 && now.getMinutes() === 0) alertedSlots.clear();
+    if (now.getSeconds() === 0 && now.getMinutes() === 0) notifiedTransition.clear();
   }
 
-  // Stylus Canvas
-  const canvas = document.getElementById('handwritingCanvas');
+  // Dual NotePad Logic (Typing + Canvas)
+  const textPad = document.getElementById('textPadArea');
+  const canvasBox = document.getElementById('canvasContainer');
+  const canvas = document.getElementById('drawCanvas');
   const ctx = canvas.getContext('2d');
-  let drawing = false;
+  let isPainting = false;
   let strokeWidth = 2;
-  let strokeColor = '#E07A5F';
+  let strokeColor = '#232220';
 
-  function initCanvas() {
-    canvas.width = canvas.parentElement.clientWidth;
-    canvas.height = canvas.parentElement.clientHeight;
-    loadCanvas();
-  }
-
-  function getCoordinates(e) {
-    const rect = canvas.getBoundingClientRect();
-    if (e.touches && e.touches[0]) {
-      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+  function switchMode(mode) {
+    if (mode === 'type') {
+      textPad.style.display = 'block';
+      canvasBox.style.display = 'none';
+      document.getElementById('canvasTools').style.display = 'none';
+      document.getElementById('tabType').classList.add('active');
+      document.getElementById('tabDraw').classList.remove('active');
+    } else {
+      textPad.style.display = 'none';
+      canvasBox.style.display = 'block';
+      document.getElementById('canvasTools').style.display = 'flex';
+      document.getElementById('tabDraw').classList.add('active');
+      document.getElementById('tabType').classList.remove('active');
+      resizeCanvas();
     }
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   }
 
-  function startDraw(e) {
-    drawing = true;
-    const coords = getCoordinates(e);
+  // Auto-Save Text Notes by Date
+  textPad.addEventListener('input', () => {
+    const key = 'text_note_' + document.getElementById('appDate').value;
+    localStorage.setItem(key, textPad.value);
+  });
+
+  function loadDateNotes() {
+    const date = document.getElementById('appDate').value;
+    textPad.value = localStorage.getItem('text_note_' + date) || '';
+    loadCanvasDraw();
+  }
+
+  // Canvas Hand-drawing Logic
+  function resizeCanvas() {
+    canvas.width = canvasBox.clientWidth;
+    canvas.height = canvasBox.clientHeight;
+    loadCanvasDraw();
+  }
+
+  function getPointerPos(e) {
+    const r = canvas.getBoundingClientRect();
+    if (e.touches && e.touches[0]) {
+      return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+    }
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  function penDown(e) {
+    isPainting = true;
+    const p = getPointerPos(e);
     ctx.beginPath();
-    ctx.moveTo(coords.x, coords.y);
+    ctx.moveTo(p.x, p.y);
   }
 
-  function moveDraw(e) {
-    if (!drawing) return;
-    const coords = getCoordinates(e);
+  function penMove(e) {
+    if (!isPainting) return;
+    const p = getPointerPos(e);
     ctx.lineWidth = strokeWidth;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = strokeColor;
-    ctx.lineTo(coords.x, coords.y);
+    ctx.lineTo(p.x, p.y);
     ctx.stroke();
   }
 
-  function stopDraw() {
-    if (!drawing) return;
-    drawing = false;
+  function penUp() {
+    if (!isPainting) return;
+    isPainting = false;
     ctx.closePath();
-    saveCanvas();
+    saveCanvasDraw();
   }
 
-  canvas.addEventListener('mousedown', startDraw);
-  canvas.addEventListener('mousemove', moveDraw);
-  canvas.addEventListener('mouseup', stopDraw);
+  canvas.addEventListener('mousedown', penDown);
+  canvas.addEventListener('mousemove', penMove);
+  canvas.addEventListener('mouseup', penUp);
+  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); penDown(e); }, { passive: false });
+  canvas.addEventListener('touchmove', (e) => { e.preventDefault(); penMove(e); }, { passive: false });
+  canvas.addEventListener('touchend', penUp);
 
-  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e); }, { passive: false });
-  canvas.addEventListener('touchmove', (e) => { e.preventDefault(); moveDraw(e); }, { passive: false });
-  canvas.addEventListener('touchend', stopDraw);
+  document.getElementById('inkColor').addEventListener('input', (e) => strokeColor = e.target.value);
+  function setInk(w) { strokeWidth = w; }
 
-  document.getElementById('penColor').addEventListener('input', (e) => strokeColor = e.target.value);
-
-  function setStroke(width, btn) {
-    strokeWidth = width;
-    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+  function saveCanvasDraw() {
+    const key = 'canvas_draw_' + document.getElementById('appDate').value;
+    localStorage.setItem(key, canvas.toDataURL());
   }
 
-  function clearPenCanvas() {
+  function loadCanvasDraw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const dateKey = 'canvas_art_' + document.getElementById('systemDate').value;
-    localStorage.removeItem(dateKey);
-  }
-
-  function saveCanvas() {
-    const dateKey = 'canvas_art_' + document.getElementById('systemDate').value;
-    localStorage.setItem(dateKey, canvas.toDataURL());
-  }
-
-  function loadCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const dateKey = 'canvas_art_' + document.getElementById('systemDate').value;
-    const data = localStorage.getItem(dateKey);
+    const key = 'canvas_draw_' + document.getElementById('appDate').value;
+    const data = localStorage.getItem(key);
     if (data) {
       const img = new Image();
       img.src = data;
@@ -726,28 +678,22 @@
     }
   }
 
-  function downloadCanvas() {
-    const a = document.createElement('a');
-    a.download = `Physics_Note_${document.getElementById('systemDate').value}.png`;
-    a.href = canvas.toDataURL();
-    a.click();
+  function clearCanvasDraw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const key = 'canvas_draw_' + document.getElementById('appDate').value;
+    localStorage.removeItem(key);
   }
 
-  // Lifecycle initialization
+  // App Initialization
   window.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('systemDate').value = new Date().toISOString().split('T')[0];
-    renderRoutine();
-    initCanvas();
-    updateSystemClock();
-    setInterval(updateSystemClock, 1000);
-
-    // Random Coach advice every reload
-    const rand = Math.floor(Math.random() * coachWisdom.length);
-    document.getElementById('coachAdvice').innerText = coachWisdom[rand];
+    document.getElementById('appDate').value = new Date().toISOString().split('T')[0];
+    renderSchedule();
+    loadDateNotes();
+    tickSystem();
+    setInterval(tickSystem, 1000);
   });
 
-  window.addEventListener('resize', initCanvas);
-  document.getElementById('systemDate').addEventListener('change', loadCanvas);
+  document.getElementById('appDate').addEventListener('change', loadDateNotes);
 </script>
 
 </body>
