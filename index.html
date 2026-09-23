@@ -12,27 +12,29 @@
 
 
 
-
-
-
 <!DOCTYPE html>
 <html lang="my">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Aura Coach — Focus & Physics Journal</title>
+  <title>Aura — Physics & Focus Architect</title>
+  
   <!-- App Mode Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="theme-color" content="#FAF9F6">
-  
+  <meta name="theme-color" content="#C96442">
+
+  <!-- Custom High-End Dynamic SVG App Icon (Home screen shortcut icon) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%23C96442'/%3E%3Ccircle cx='256' cy='256' r='140' stroke='%23FAF9F6' stroke-width='24' fill='none' stroke-dasharray='30 18' opacity='0.85'/%3E%3Cellipse cx='256' cy='256' rx='180' ry='70' stroke='%23FAF9F6' stroke-width='16' fill='none' transform='rotate(-30 256 256)' opacity='0.6'/%3E%3Ccircle cx='256' cy='256' r='38' fill='%23FAF9F6'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%23C96442'/%3E%3Ccircle cx='256' cy='256' r='140' stroke='%23FAF9F6' stroke-width='24' fill='none' stroke-dasharray='30 18' opacity='0.85'/%3E%3Cellipse cx='256' cy='256' rx='180' ry='70' stroke='%23FAF9F6' stroke-width='16' fill='none' transform='rotate(-30 256 256)' opacity='0.6'/%3E%3Ccircle cx='256' cy='256' r='38' fill='%23FAF9F6'/%3E%3C/svg%3E">
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Pyidaungsu:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      /* Claude AI Signature Warm Editorial Palette */
       --bg-base: #FAF9F6;
       --surface: #FFFFFF;
       --surface-subtle: #F4F1EA;
@@ -42,7 +44,7 @@
       --text-muted: #66635C;
       --text-light: #9B988E;
       --terracotta: #C96442;
-      --terracotta-soft: rgba(201, 100, 66, 0.1);
+      --terracotta-soft: rgba(201, 100, 66, 0.12);
       --font-serif: "Newsreader", "Pyidaungsu", Georgia, serif;
       --font-sans: "Plus Jakarta Sans", "Pyidaungsu", -apple-system, sans-serif;
       --shadow: 0 4px 20px rgba(35, 34, 32, 0.04), 0 1px 3px rgba(35, 34, 32, 0.02);
@@ -61,17 +63,96 @@
       padding: 24px 16px 80px;
       line-height: 1.55;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
+    /* ============================================================
+       ELEGANT INTRO ANIMATION SCREEN
+    ============================================================ */
+    #splashScreen {
+      position: fixed;
+      inset: 0;
+      background-color: #FAF9F6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
+    }
+
+    .splash-logo-box {
+      width: 88px;
+      height: 88px;
+      background: var(--terracotta);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 16px 40px rgba(201, 100, 66, 0.35);
+      animation: logoScale 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .splash-logo-box svg {
+      width: 48px;
+      height: 48px;
+      color: #FAF9F6;
+      animation: spinOrbit 4s linear infinite;
+    }
+
+    .splash-title {
+      margin-top: 22px;
+      font-family: var(--font-serif);
+      font-size: 1.7rem;
+      font-weight: 500;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+      opacity: 0;
+      animation: textReveal 0.9s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .splash-subtitle {
+      margin-top: 6px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: textReveal 0.9s 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes logoScale {
+      0% { transform: scale(0.6) rotate(-10deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    @keyframes spinOrbit {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes textReveal {
+      0% { transform: translateY(14px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ============================================================
+       MAIN APP SHELL
+    ============================================================ */
     .app-shell {
       width: 100%;
       max-width: 720px;
       display: flex;
       flex-direction: column;
       gap: 20px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .app-shell.app-ready {
+      opacity: 1;
+      transform: translateY(0);
     }
 
-    /* Top App Bar */
+    /* Top Bar */
     .top-bar {
       display: flex;
       justify-content: space-between;
@@ -85,19 +166,32 @@
     .brand-mark {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
-    .brand-dot {
-      width: 14px;
-      height: 14px;
+    .app-logo-badge {
+      width: 36px;
+      height: 36px;
       background: var(--terracotta);
-      border-radius: 50%;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FAF9F6;
+      box-shadow: 0 4px 12px rgba(201, 100, 66, 0.3);
     }
     .brand-name {
       font-family: var(--font-serif);
-      font-size: 1.25rem;
+      font-size: 1.28rem;
       font-weight: 500;
       letter-spacing: -0.01em;
+    }
+    .brand-name span {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: var(--terracotta);
+      font-weight: 600;
+      margin-left: 6px;
+      letter-spacing: 0.05em;
     }
     .date-control {
       display: flex;
@@ -105,7 +199,7 @@
       background: var(--surface-subtle);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 4px 12px;
+      padding: 5px 12px;
     }
     .date-control input {
       border: none;
@@ -117,7 +211,7 @@
       cursor: pointer;
     }
 
-    /* Coach Status & Chain-Alarm Indicator */
+    /* Coach Status Card */
     .coach-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -158,11 +252,12 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 4px 8px;
+      padding: 4px 10px;
       font-size: 0.75rem;
       cursor: pointer;
       color: var(--text-main);
     }
+    .btn-test:hover { border-color: var(--terracotta); color: var(--terracotta); }
 
     /* Schedule Feed */
     .schedule-header {
@@ -170,9 +265,10 @@
       justify-content: space-between;
       align-items: center;
       margin-top: 4px;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       font-weight: 600;
       color: var(--text-muted);
+      letter-spacing: 0.04em;
     }
     .routine-container {
       display: flex;
@@ -193,7 +289,7 @@
     .routine-box.active-step {
       border-color: var(--terracotta);
       background: #FFFDFC;
-      box-shadow: 0 4px 16px rgba(201, 100, 66, 0.12);
+      box-shadow: 0 4px 18px rgba(201, 100, 66, 0.12);
     }
     .routine-top {
       display: flex;
@@ -259,7 +355,7 @@
     }
     .btn-add-block:hover { border-color: var(--terracotta); color: var(--terracotta); background: #fff; }
 
-    /* Enlarged Dual NotePad (Typing + Stylus Canvas) */
+    /* Enlarged Dual NotePad (Typing + Pen Canvas) */
     .notepad-panel {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -277,10 +373,7 @@
       background: var(--surface-subtle);
       border-bottom: 1px solid var(--border);
     }
-    .tab-pills {
-      display: flex;
-      gap: 6px;
-    }
+    .tab-pills { display: flex; gap: 6px; }
     .tab-pill {
       border: 1px solid var(--border);
       background: var(--surface);
@@ -310,7 +403,6 @@
       background: none;
     }
 
-    /* Type Editor Area */
     #textPadArea {
       width: 100%;
       min-height: 480px;
@@ -327,7 +419,6 @@
       resize: vertical;
     }
 
-    /* Canvas Drawing Area */
     #canvasContainer {
       width: 100%;
       height: 480px;
@@ -346,7 +437,7 @@
       cursor: crosshair;
     }
 
-    /* Chain Alarm Banner (Popup) */
+    /* Chain Alarm Banner */
     .alert-banner {
       position: fixed;
       top: 18px;
@@ -371,41 +462,59 @@
 </head>
 <body>
 
-<div class="app-shell">
-  <!-- Top App Navigation -->
+<!-- Intro Animation Screen -->
+<div id="splashScreen">
+  <div class="splash-logo-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 2a10 10 0 1 0 10 10" stroke-dasharray="4 4"/>
+      <path d="M12 21a9 9 0 0 1-9-9"/>
+    </svg>
+  </div>
+  <h1 class="splash-title">Aura Focus</h1>
+  <p class="splash-subtitle">Physics & Routine Architect</p>
+</div>
+
+<!-- Main App Shell -->
+<div class="app-shell" id="appShell">
   <header class="top-bar">
     <div class="brand-mark">
-      <div class="brand-dot"></div>
-      <div class="brand-name">Rhythm & Focus</div>
+      <div class="app-logo-badge">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 3a9 9 0 1 0 9 9"/>
+        </svg>
+      </div>
+      <div class="brand-name">Aura<span>PHYSICS</span></div>
     </div>
     <div class="date-control">
       <input type="date" id="appDate">
     </div>
   </header>
 
-  <!-- Dynamic Coach & Alarm Status -->
+  <!-- Coach Section -->
   <section class="coach-card">
     <div class="coach-header">
       <span>AI Coach Assistant</span>
       <span id="liveClock">00:00:00</span>
     </div>
     <div class="coach-quote" id="coachPhrase">
-      “Physics ဆိုတာ သင်္ချာသင်္ကေတတွေထက် သဘာဝတရား ဘယ်လို အလုပ်လုပ်သလဲဆိုတာကို နားလည်အောင် တွေးဆခြင်း ဖြစ်တယ်။”
+      “Concept တစ်ခုကို အလွတ်မကျက်ပါနဲ့။ စက္ကူပေါ်မှာ ပုံဆွဲပြီး ကိုယ့်ဘာသာ နားလည်အောင် အသံထွက် ရှင်းပြကြည့်ပါ။”
     </div>
     <div class="chain-alarm-bar">
-      <span id="activeSlotStatus">🔔 Chain Alarm Active: တစ်ခုပြီးတိုင်း အသံမြည်ပေးပါမည်</span>
+      <span id="activeSlotStatus">🔔 Chain Alarm Active: အချိန်ဇယားအတိုင်း အသံမြည်ပါမည်</span>
       <button class="btn-test" onclick="testAudio()">အသံစမ်းရန်</button>
     </div>
   </section>
 
-  <!-- Flexible Schedule Blocks -->
+  <!-- Routine List -->
   <div class="schedule-header">
     <span>TODAY'S OPERATIONAL BLOCKS</span>
   </div>
   <div class="routine-container" id="scheduleList"></div>
   <button class="btn-add-block" onclick="addCustomTask()">+ Add Next Routine Topic</button>
 
-  <!-- Spacious Dual NotePad (Typing + Pen Canvas) -->
+  <!-- Dual NotePad (Typing + Stylus Canvas) -->
   <section class="notepad-panel">
     <div class="notepad-tabs">
       <div class="tab-pills">
@@ -440,7 +549,18 @@
 </div>
 
 <script>
-  // Initial Routine Schema
+  // Intro Animation Handle
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const splash = document.getElementById('splashScreen');
+      const shell = document.getElementById('appShell');
+      splash.style.opacity = '0';
+      splash.style.visibility = 'hidden';
+      shell.classList.add('app-ready');
+    }, 1200); // 1.2s Intro Experience
+  });
+
+  // Routine Schema
   const defaultRoutine = [
     { title: "🌅 Morning Kickstart", start: "06:00", end: "07:00", desc: "နိုးထ၊ မျက်နှာသစ်၊ ရေချိုး၊ မနက်စာပြင်ဆင်စားသောက်ခြင်း" },
     { title: "📚 Core Deep Study (Physics)", start: "07:00", end: "09:30", desc: "နားမလည်သော Theory နှင့် Concept များကို YouTube Visuals ဖြင့် ကြည့်ရှုလေ့လာခြင်း" },
@@ -452,9 +572,9 @@
     { title: "😴 Restorative Sleep (7 Hours)", start: "23:00", end: "06:00", desc: "ဖုန်းပိတ်၊ အိပ်ရာဝင်ပြီး ဦးနှောက်ကို အပြည့်အဝ အားပြန်ဖြည့်ခြင်း" }
   ];
 
-  let routines = JSON.parse(localStorage.getItem('rhythm_routines')) || defaultRoutine;
+  let routines = JSON.parse(localStorage.getItem('aura_routines')) || defaultRoutine;
 
-  // Sound Engine (Web Audio Synth - Double Chime)
+  // Sound Engine
   let audioCtx = null;
   function playHarmonicChime() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -464,8 +584,8 @@
     const osc2 = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
 
-    osc1.frequency.setValueAtTime(659.25, now); // E5
-    osc2.frequency.setValueAtTime(880, now + 0.15); // A5
+    osc1.frequency.setValueAtTime(659.25, now);
+    osc2.frequency.setValueAtTime(880, now + 0.15);
 
     gainNode.gain.setValueAtTime(0.3, now);
     gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
@@ -494,7 +614,6 @@
     triggerChainAlarm("စမ်းသပ်မှု ပြီးဆုံး", "စာလေ့လာရန် အသင့်ဖြစ်ပါပြီ");
   }
 
-  // Render & Persistence
   function renderSchedule() {
     const list = document.getElementById('scheduleList');
     list.innerHTML = '';
@@ -522,44 +641,40 @@
 
   function editTask(index, field, value) {
     routines[index][field] = value;
-    localStorage.setItem('rhythm_routines', JSON.stringify(routines));
+    localStorage.setItem('aura_routines', JSON.stringify(routines));
   }
 
   function addCustomTask() {
-    routines.push({ title: "Task Block အသစ်", start: "12:00", end: "13:00", desc: "ဒီအပိုင်းမှာ လုပ်ဆောင်မည့် အကြောင်းအရာ" });
-    localStorage.setItem('rhythm_routines', JSON.stringify(routines));
+    routines.push({ title: "Topic အသစ်", start: "12:00", end: "13:00", desc: "ဒီအပိုင်းတွင် လေ့လာမည့် အကြောင်းအရာ" });
+    localStorage.setItem('aura_routines', JSON.stringify(routines));
     renderSchedule();
   }
 
   function deleteTask(index) {
     routines.splice(index, 1);
-    localStorage.setItem('rhythm_routines', JSON.stringify(routines));
+    localStorage.setItem('aura_routines', JSON.stringify(routines));
     renderSchedule();
   }
 
-  // Live Tracking & Chain Alarm Clock
   let notifiedTransition = new Set();
-
   function tickSystem() {
     const now = new Date();
     document.getElementById('liveClock').innerText = now.toTimeString().split(' ')[0];
     const currentHM = now.toTimeString().slice(0, 5);
 
     let activeFound = false;
-
     routines.forEach((task, idx) => {
       const el = document.getElementById(`step-${idx}`);
       if (!el) return;
 
       if (currentHM >= task.start && currentHM < task.end) {
         el.classList.add('active-step');
-        document.getElementById('activeSlotStatus').innerText = `⚡ လက်ရှိ လုပ်ဆောင်နေသည်: ${task.title}`;
+        document.getElementById('activeSlotStatus').innerText = `⚡ လက်ရှိ: ${task.title}`;
         activeFound = true;
       } else {
         el.classList.remove('active-step');
       }
 
-      // Chain Alarm: Task transition trigger
       if (task.end === currentHM && !notifiedTransition.has(task.end)) {
         const next = routines[idx + 1] ? routines[idx + 1].title : "Rest of Day Flow";
         triggerChainAlarm(task.title, next);
@@ -574,7 +689,7 @@
     if (now.getSeconds() === 0 && now.getMinutes() === 0) notifiedTransition.clear();
   }
 
-  // Dual NotePad Logic (Typing + Canvas)
+  // Notepad & Stylus
   const textPad = document.getElementById('textPadArea');
   const canvasBox = document.getElementById('canvasContainer');
   const canvas = document.getElementById('drawCanvas');
@@ -600,10 +715,8 @@
     }
   }
 
-  // Auto-Save Text Notes by Date
   textPad.addEventListener('input', () => {
-    const key = 'text_note_' + document.getElementById('appDate').value;
-    localStorage.setItem(key, textPad.value);
+    localStorage.setItem('text_note_' + document.getElementById('appDate').value, textPad.value);
   });
 
   function loadDateNotes() {
@@ -612,7 +725,6 @@
     loadCanvasDraw();
   }
 
-  // Canvas Hand-drawing Logic
   function resizeCanvas() {
     canvas.width = canvasBox.clientWidth;
     canvas.height = canvasBox.clientHeight;
@@ -663,14 +775,12 @@
   function setInk(w) { strokeWidth = w; }
 
   function saveCanvasDraw() {
-    const key = 'canvas_draw_' + document.getElementById('appDate').value;
-    localStorage.setItem(key, canvas.toDataURL());
+    localStorage.setItem('canvas_draw_' + document.getElementById('appDate').value, canvas.toDataURL());
   }
 
   function loadCanvasDraw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const key = 'canvas_draw_' + document.getElementById('appDate').value;
-    const data = localStorage.getItem(key);
+    const data = localStorage.getItem('canvas_draw_' + document.getElementById('appDate').value);
     if (data) {
       const img = new Image();
       img.src = data;
@@ -680,11 +790,9 @@
 
   function clearCanvasDraw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const key = 'canvas_draw_' + document.getElementById('appDate').value;
-    localStorage.removeItem(key);
+    localStorage.removeItem('canvas_draw_' + document.getElementById('appDate').value);
   }
 
-  // App Initialization
   window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('appDate').value = new Date().toISOString().split('T')[0];
     renderSchedule();
@@ -698,3 +806,5 @@
 
 </body>
 </html>
+
+
