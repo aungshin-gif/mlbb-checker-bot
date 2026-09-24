@@ -1,810 +1,473 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="my">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Aura — Physics & Focus Architect</title>
-  
-  <!-- App Mode Meta Tags -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="theme-color" content="#C96442">
-
-  <!-- Custom High-End Dynamic SVG App Icon (Home screen shortcut icon) -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%23C96442'/%3E%3Ccircle cx='256' cy='256' r='140' stroke='%23FAF9F6' stroke-width='24' fill='none' stroke-dasharray='30 18' opacity='0.85'/%3E%3Cellipse cx='256' cy='256' rx='180' ry='70' stroke='%23FAF9F6' stroke-width='16' fill='none' transform='rotate(-30 256 256)' opacity='0.6'/%3E%3Ccircle cx='256' cy='256' r='38' fill='%23FAF9F6'/%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%23C96442'/%3E%3Ccircle cx='256' cy='256' r='140' stroke='%23FAF9F6' stroke-width='24' fill='none' stroke-dasharray='30 18' opacity='0.85'/%3E%3Cellipse cx='256' cy='256' rx='180' ry='70' stroke='%23FAF9F6' stroke-width='16' fill='none' transform='rotate(-30 256 256)' opacity='0.6'/%3E%3Ccircle cx='256' cy='256' r='38' fill='%23FAF9F6'/%3E%3C/svg%3E">
-
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Pyidaungsu:wght@400;600&display=swap" rel="stylesheet">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Western Outpost 1998 — RTS Strategy</title>
   <style>
-    :root {
-      --bg-base: #FAF9F6;
-      --surface: #FFFFFF;
-      --surface-subtle: #F4F1EA;
-      --border: #E5E1D8;
-      --border-focus: #D0C9B8;
-      --text-main: #232220;
-      --text-muted: #66635C;
-      --text-light: #9B988E;
-      --terracotta: #C96442;
-      --terracotta-soft: rgba(201, 100, 66, 0.12);
-      --font-serif: "Newsreader", "Pyidaungsu", Georgia, serif;
-      --font-sans: "Plus Jakarta Sans", "Pyidaungsu", -apple-system, sans-serif;
-      --shadow: 0 4px 20px rgba(35, 34, 32, 0.04), 0 1px 3px rgba(35, 34, 32, 0.02);
-      --radius: 14px;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      font-family: var(--font-sans);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      padding: 24px 16px 80px;
-      line-height: 1.55;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-    }
-
-    /* ============================================================
-       ELEGANT INTRO ANIMATION SCREEN
-    ============================================================ */
-    #splashScreen {
-      position: fixed;
-      inset: 0;
-      background-color: #FAF9F6;
+      background: #111;
+      color: #eee;
+      font-family: 'Courier New', Courier, monospace;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      z-index: 99999;
-      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
-    }
-
-    .splash-logo-box {
-      width: 88px;
-      height: 88px;
-      background: var(--terracotta);
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 16px 40px rgba(201, 100, 66, 0.35);
-      animation: logoScale 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    .splash-logo-box svg {
-      width: 48px;
-      height: 48px;
-      color: #FAF9F6;
-      animation: spinOrbit 4s linear infinite;
-    }
-
-    .splash-title {
-      margin-top: 22px;
-      font-family: var(--font-serif);
-      font-size: 1.7rem;
-      font-weight: 500;
-      color: var(--text-main);
-      letter-spacing: -0.02em;
-      opacity: 0;
-      animation: textReveal 0.9s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    .splash-subtitle {
-      margin-top: 6px;
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      opacity: 0;
-      animation: textReveal 0.9s 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes logoScale {
-      0% { transform: scale(0.6) rotate(-10deg); opacity: 0; }
-      100% { transform: scale(1) rotate(0deg); opacity: 1; }
-    }
-    @keyframes spinOrbit {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    @keyframes textReveal {
-      0% { transform: translateY(14px); opacity: 0; }
-      100% { transform: translateY(0); opacity: 1; }
-    }
-
-    /* ============================================================
-       MAIN APP SHELL
-    ============================================================ */
-    .app-shell {
-      width: 100%;
-      max-width: 720px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      opacity: 0;
-      transform: translateY(12px);
-      transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .app-shell.app-ready {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* Top Bar */
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 18px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-    .brand-mark {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .app-logo-badge {
-      width: 36px;
-      height: 36px;
-      background: var(--terracotta);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #FAF9F6;
-      box-shadow: 0 4px 12px rgba(201, 100, 66, 0.3);
-    }
-    .brand-name {
-      font-family: var(--font-serif);
-      font-size: 1.28rem;
-      font-weight: 500;
-      letter-spacing: -0.01em;
-    }
-    .brand-name span {
-      font-family: var(--font-sans);
-      font-size: 0.75rem;
-      color: var(--terracotta);
-      font-weight: 600;
-      margin-left: 6px;
-      letter-spacing: 0.05em;
-    }
-    .date-control {
-      display: flex;
-      align-items: center;
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 5px 12px;
-    }
-    .date-control input {
-      border: none;
-      background: transparent;
-      font-family: var(--font-sans);
-      font-size: 0.82rem;
-      color: var(--text-main);
-      outline: none;
-      cursor: pointer;
-    }
-
-    /* Coach Status Card */
-    .coach-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .coach-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.8rem;
-      color: var(--terracotta);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .coach-quote {
-      font-family: var(--font-serif);
-      font-size: 1.08rem;
-      color: var(--text-main);
-      line-height: 1.45;
-    }
-    .chain-alarm-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--surface-subtle);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      color: var(--text-muted);
-    }
-    .btn-test {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 4px 10px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      color: var(--text-main);
-    }
-    .btn-test:hover { border-color: var(--terracotta); color: var(--terracotta); }
-
-    /* Schedule Feed */
-    .schedule-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 4px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      letter-spacing: 0.04em;
-    }
-    .routine-container {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .routine-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      transition: all 0.2s ease;
-      box-shadow: var(--shadow);
-    }
-    .routine-box.active-step {
-      border-color: var(--terracotta);
-      background: #FFFDFC;
-      box-shadow: 0 4px 18px rgba(201, 100, 66, 0.12);
-    }
-    .routine-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .routine-title {
-      font-weight: 600;
-      font-size: 0.95rem;
-      border: none;
-      background: transparent;
-      outline: none;
-      color: var(--text-main);
-      width: 60%;
-    }
-    .routine-title:focus { border-bottom: 1px dashed var(--terracotta); }
-    .time-slot {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: var(--surface-subtle);
-      border: 1px solid var(--border);
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 0.78rem;
-    }
-    .time-slot input {
-      border: none;
-      background: transparent;
-      font-size: 0.78rem;
-      color: var(--text-main);
-      outline: none;
-      cursor: pointer;
-    }
-    .routine-desc {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      border: none;
-      background: transparent;
-      outline: none;
-      width: 100%;
-    }
-    .routine-desc:focus { color: var(--text-main); border-bottom: 1px solid var(--border-focus); }
-    .btn-del {
-      border: none;
-      background: none;
-      color: var(--text-light);
-      cursor: pointer;
-      font-size: 0.85rem;
-      margin-left: 6px;
-    }
-    .btn-del:hover { color: #dc2626; }
-
-    .btn-add-block {
-      background: transparent;
-      border: 1px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 12px;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.2s;
-    }
-    .btn-add-block:hover { border-color: var(--terracotta); color: var(--terracotta); background: #fff; }
-
-    /* Enlarged Dual NotePad (Typing + Pen Canvas) */
-    .notepad-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
       overflow: hidden;
     }
-    .notepad-tabs {
+    #ui-bar {
+      width: 100vw;
+      max-width: 900px;
+      background: #2b1f14;
+      border-bottom: 2px solid #5a4128;
+      padding: 8px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 18px;
-      background: var(--surface-subtle);
-      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 13px;
     }
-    .tab-pills { display: flex; gap: 6px; }
-    .tab-pill {
-      border: 1px solid var(--border);
-      background: var(--surface);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      color: var(--text-muted);
+    .btn {
+      background: #4a3525;
+      border: 1px solid #8c6743;
+      color: #f5deb3;
+      padding: 5px 10px;
+      font-family: inherit;
       cursor: pointer;
+      font-weight: bold;
     }
-    .tab-pill.active {
-      background: var(--terracotta);
-      border-color: var(--terracotta);
-      color: #fff;
-    }
-    .canvas-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .canvas-actions input[type="color"] {
-      border: none;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      cursor: pointer;
-      background: none;
-    }
-
-    #textPadArea {
-      width: 100%;
-      min-height: 480px;
-      padding: 24px;
-      border: none;
-      outline: none;
-      font-family: var(--font-serif);
-      font-size: 1.15rem;
-      line-height: 1.8;
-      color: var(--text-main);
-      background-color: var(--surface);
-      background-image: linear-gradient(#F0EDE6 1px, transparent 1px);
-      background-size: 100% 36px;
-      resize: vertical;
-    }
-
-    #canvasContainer {
-      width: 100%;
-      height: 480px;
+    .btn:active { background: #8c6743; color: #fff; }
+    .btn-switch { background: #8b0000; border-color: #ff4500; color: white; }
+    #canvas-container {
       position: relative;
-      display: none;
-      background-color: #FAF8F4;
-      background-image: 
-        linear-gradient(to right, #EFECE3 1px, transparent 1px),
-        linear-gradient(to bottom, #EFECE3 1px, transparent 1px);
-      background-size: 28px 28px;
+      border: 2px solid #5a4128;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
     }
-    #drawCanvas {
-      width: 100%;
-      height: 100%;
-      touch-action: none;
-      cursor: crosshair;
-    }
-
-    /* Chain Alarm Banner */
-    .alert-banner {
-      position: fixed;
-      top: 18px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--surface);
-      border: 2px solid var(--terracotta);
-      border-radius: 30px;
-      padding: 12px 24px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-      display: none;
-      align-items: center;
-      gap: 12px;
-      z-index: 10000;
-      animation: popIn 0.3s ease;
-    }
-    @keyframes popIn {
-      from { transform: translate(-50%, -20px); opacity: 0; }
-      to { transform: translate(-50%, 0); opacity: 1; }
+    canvas { display: block; background: #8f6c42; cursor: crosshair; }
+    #instructions {
+      font-size: 11px;
+      color: #aaa;
+      padding: 4px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
 
-<!-- Intro Animation Screen -->
-<div id="splashScreen">
-  <div class="splash-logo-box">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M12 2a10 10 0 1 0 10 10" stroke-dasharray="4 4"/>
-      <path d="M12 21a9 9 0 0 1-9-9"/>
-    </svg>
-  </div>
-  <h1 class="splash-title">Aura Focus</h1>
-  <p class="splash-subtitle">Physics & Routine Architect</p>
-</div>
-
-<!-- Main App Shell -->
-<div class="app-shell" id="appShell">
-  <header class="top-bar">
-    <div class="brand-mark">
-      <div class="app-logo-badge">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 3a9 9 0 1 0 9 9"/>
-        </svg>
-      </div>
-      <div class="brand-name">Aura<span>PHYSICS</span></div>
-    </div>
-    <div class="date-control">
-      <input type="date" id="appDate">
-    </div>
-  </header>
-
-  <!-- Coach Section -->
-  <section class="coach-card">
-    <div class="coach-header">
-      <span>AI Coach Assistant</span>
-      <span id="liveClock">00:00:00</span>
-    </div>
-    <div class="coach-quote" id="coachPhrase">
-      “Concept တစ်ခုကို အလွတ်မကျက်ပါနဲ့။ စက္ကူပေါ်မှာ ပုံဆွဲပြီး ကိုယ့်ဘာသာ နားလည်အောင် အသံထွက် ရှင်းပြကြည့်ပါ။”
-    </div>
-    <div class="chain-alarm-bar">
-      <span id="activeSlotStatus">🔔 Chain Alarm Active: အချိန်ဇယားအတိုင်း အသံမြည်ပါမည်</span>
-      <button class="btn-test" onclick="testAudio()">အသံစမ်းရန်</button>
-    </div>
-  </section>
-
-  <!-- Routine List -->
-  <div class="schedule-header">
-    <span>TODAY'S OPERATIONAL BLOCKS</span>
-  </div>
-  <div class="routine-container" id="scheduleList"></div>
-  <button class="btn-add-block" onclick="addCustomTask()">+ Add Next Routine Topic</button>
-
-  <!-- Dual NotePad (Typing + Stylus Canvas) -->
-  <section class="notepad-panel">
-    <div class="notepad-tabs">
-      <div class="tab-pills">
-        <button class="tab-pill active" id="tabType" onclick="switchMode('type')">✍️ Type Notes</button>
-        <button class="tab-pill" id="tabDraw" onclick="switchMode('draw')">✒️ Stylus Canvas</button>
-      </div>
-      <div class="canvas-actions" id="canvasTools" style="display: none;">
-        <input type="color" id="inkColor" value="#232220">
-        <button class="btn-test" onclick="setInk(2)">Fine (2px)</button>
-        <button class="btn-test" onclick="setInk(4)">Pen (4px)</button>
-        <button class="btn-test" onclick="clearCanvasDraw()">Clear</button>
-      </div>
-    </div>
-
-    <!-- Text Typing System -->
-    <textarea id="textPadArea" placeholder="ဒီနေရာမှာ စာရိုက်၍ သင်ခန်းစာ အကျဉ်းချုပ်များနှင့် Feynman Reflection များကို ရေးသားနိုင်ပါသည်..."></textarea>
-
-    <!-- Stylus Drawing System -->
-    <div id="canvasContainer">
-      <canvas id="drawCanvas"></canvas>
-    </div>
-  </section>
-</div>
-
-<!-- Chain Alarm Popup Modal -->
-<div class="alert-banner" id="chainAlert">
-  <span style="font-size: 1.4rem;">🔔</span>
+<div id="ui-bar">
   <div>
-    <div style="font-weight: 700; font-size: 0.95rem; color: var(--terracotta);" id="alertHead">Time Completed!</div>
-    <div style="font-size: 0.85rem; color: var(--text-main);" id="alertNext">Next step is now active.</div>
+    <strong>TIME:</strong> <span id="time-display">DAY (12:00)</span> | 
+    <strong>GOLD:</strong> <span id="gold-display" style="color: #ffd700;">300</span>
   </div>
+  <div>
+    <button class="btn btn-switch" onclick="switchPlayer()">🕹️ SWITCH TO <span id="player-label">P2</span></button>
+    <button class="btn" onclick="spawnUnit('soldier')">🎖️ Recruit Soldier (50G)</button>
+    <button class="btn" onclick="spawnUnit('wagon')">🚜 Build Wagon (120G)</button>
+  </div>
+</div>
+
+<div id="canvas-container">
+  <canvas id="gameCanvas" width="900" height="520"></canvas>
+</div>
+
+<div id="instructions">
+  [ထိန်းချုပ်နည်း] စစ်သား/ယာဉ်ကို Click သို့မဟုတ် Drag ဆွဲပြီး ရွေးပါ -> သွားလိုရာ မြေနေရာကို Right Click (သို့မဟုတ် Screen ကို ပုတ်ပြီး အမိန့်ပေးပါ)။ တောထဲက Vampire များကို အဖွဲ့လိုက် ပစ်ခတ်တိုက်ခိုက်ပါ။
 </div>
 
 <script>
-  // Intro Animation Handle
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      const splash = document.getElementById('splashScreen');
-      const shell = document.getElementById('appShell');
-      splash.style.opacity = '0';
-      splash.style.visibility = 'hidden';
-      shell.classList.add('app-ready');
-    }, 1200); // 1.2s Intro Experience
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// Game State
+let currentPlayer = 1; // 1 or 2
+let gold = { 1: 250, 2: 250 };
+let dayTime = 0; // 0 to 1200 (Day: 0-600, Night: 600-1200)
+let selectedUnits = [];
+let isSelecting = false;
+let selectBox = { x1: 0, y1: 0, x2: 0, y2: 0 };
+
+// Entities
+let units = [];
+let vampires = [];
+let bullets = [];
+let trees = [];
+
+// Map Structures
+const baseP1 = { x: 80, y: 100, w: 90, h: 70, name: "P1 Barracks", owner: 1 };
+const factoryP1 = { x: 80, y: 200, w: 80, h: 60, name: "P1 Wagon Works", owner: 1 };
+
+const baseP2 = { x: 80, y: 350, w: 90, h: 70, name: "P2 Barracks", owner: 2 };
+const factoryP2 = { x: 80, y: 440, w: 80, h: 60, name: "P2 Wagon Works", owner: 2 };
+
+const graveyard = { x: 740, y: 200, w: 120, h: 120, name: "Cursed Hill Graveyard" };
+
+// Generate Woods/Forest (တောအုပ်)
+for (let i = 0; i < 45; i++) {
+  trees.push({
+    x: 350 + Math.random() * 260,
+    y: 40 + Math.random() * 440,
+    r: 14 + Math.random() * 10
   });
+}
 
-  // Routine Schema
-  const defaultRoutine = [
-    { title: "🌅 Morning Kickstart", start: "06:00", end: "07:00", desc: "နိုးထ၊ မျက်နှာသစ်၊ ရေချိုး၊ မနက်စာပြင်ဆင်စားသောက်ခြင်း" },
-    { title: "📚 Core Deep Study (Physics)", start: "07:00", end: "09:30", desc: "နားမလည်သော Theory နှင့် Concept များကို YouTube Visuals ဖြင့် ကြည့်ရှုလေ့လာခြင်း" },
-    { title: "🏫 Campus Lectures / Midday", start: "09:30", end: "13:00", desc: "ကျောင်းတက်ခြင်း / နေ့လယ်စာ / ခေတ္တအနားယူခြင်း" },
-    { title: "✍️ Problem Solving & Derivations", start: "13:00", end: "15:30", desc: "ပုစ္ဆာများတွက်ခြင်း၊ Stylus Canvas ပေါ်တွင် လက်ရေးဖြင့် တွက်ချက်ခြင်း" },
-    { title: "⚡ Rest & Personal Growth", start: "15:30", end: "18:30", desc: "အင်္ဂလိပ်စာ၊ စာအုပ်ဖတ်ခြင်း၊ လမ်းလျှောက်ခြင်း" },
-    { title: "🍲 Dinner & Family Time", start: "18:30", end: "20:00", desc: "ညစာစားခြင်း၊ စိတ်လက်အပန်းဖြေခြင်း" },
-    { title: "🔄 Feynman Synthesis Review", start: "20:00", end: "22:30", desc: "ဒီနေ့သင်ယူခဲ့သည်များကို အသံထွက်ပြီး ပြန်လည်ရှင်းပြခြင်း" },
-    { title: "😴 Restorative Sleep (7 Hours)", start: "23:00", end: "06:00", desc: "ဖုန်းပိတ်၊ အိပ်ရာဝင်ပြီး ဦးနှောက်ကို အပြည့်အဝ အားပြန်ဖြည့်ခြင်း" }
-  ];
-
-  let routines = JSON.parse(localStorage.getItem('aura_routines')) || defaultRoutine;
-
-  // Sound Engine
-  let audioCtx = null;
-  function playHarmonicChime() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const now = audioCtx.currentTime;
-
-    const osc1 = audioCtx.createOscillator();
-    const osc2 = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-
-    osc1.frequency.setValueAtTime(659.25, now);
-    osc2.frequency.setValueAtTime(880, now + 0.15);
-
-    gainNode.gain.setValueAtTime(0.3, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
-
-    osc1.connect(gainNode);
-    osc2.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    osc1.start(now);
-    osc1.stop(now + 0.2);
-    osc2.start(now + 0.15);
-    osc2.stop(now + 1.4);
+// Unit Blueprint
+class Unit {
+  constructor(x, y, type, player) {
+    this.x = x;
+    this.y = y;
+    this.type = type; // 'soldier' or 'wagon'
+    this.player = player;
+    this.selected = false;
+    this.targetX = x;
+    this.targetY = y;
+    this.hp = type === 'wagon' ? 220 : 60;
+    this.maxHp = this.hp;
+    this.speed = type === 'wagon' ? 1.2 : 1.6;
+    this.range = type === 'wagon' ? 140 : 90;
+    this.cooldown = 0;
   }
 
-  function triggerChainAlarm(completedTask, nextTask) {
-    playHarmonicChime();
-    const banner = document.getElementById('chainAlert');
-    document.getElementById('alertHead').innerText = `အချိန်ပြည့်ပါပြီ: ${completedTask}`;
-    document.getElementById('alertNext').innerText = `နောက်တစ်ခုစတင်ပါပြီ: ${nextTask}`;
-    banner.style.display = 'flex';
-    setTimeout(() => { banner.style.display = 'none'; }, 8000);
-  }
-
-  function testAudio() {
-    playHarmonicChime();
-    triggerChainAlarm("စမ်းသပ်မှု ပြီးဆုံး", "စာလေ့လာရန် အသင့်ဖြစ်ပါပြီ");
-  }
-
-  function renderSchedule() {
-    const list = document.getElementById('scheduleList');
-    list.innerHTML = '';
-    routines.forEach((item, index) => {
-      const card = document.createElement('div');
-      card.className = 'routine-box';
-      card.id = `step-${index}`;
-      card.innerHTML = `
-        <div class="routine-top">
-          <input class="routine-title" value="${item.title}" onchange="editTask(${index}, 'title', this.value)">
-          <div style="display:flex; align-items:center;">
-            <div class="time-slot">
-              <input type="time" value="${item.start}" onchange="editTask(${index}, 'start', this.value)">
-              <span>→</span>
-              <input type="time" value="${item.end}" onchange="editTask(${index}, 'end', this.value)">
-            </div>
-            <button class="btn-del" onclick="deleteTask(${index})">✕</button>
-          </div>
-        </div>
-        <input class="routine-desc" value="${item.desc}" onchange="editTask(${index}, 'desc', this.value)">
-      `;
-      list.appendChild(card);
-    });
-  }
-
-  function editTask(index, field, value) {
-    routines[index][field] = value;
-    localStorage.setItem('aura_routines', JSON.stringify(routines));
-  }
-
-  function addCustomTask() {
-    routines.push({ title: "Topic အသစ်", start: "12:00", end: "13:00", desc: "ဒီအပိုင်းတွင် လေ့လာမည့် အကြောင်းအရာ" });
-    localStorage.setItem('aura_routines', JSON.stringify(routines));
-    renderSchedule();
-  }
-
-  function deleteTask(index) {
-    routines.splice(index, 1);
-    localStorage.setItem('aura_routines', JSON.stringify(routines));
-    renderSchedule();
-  }
-
-  let notifiedTransition = new Set();
-  function tickSystem() {
-    const now = new Date();
-    document.getElementById('liveClock').innerText = now.toTimeString().split(' ')[0];
-    const currentHM = now.toTimeString().slice(0, 5);
-
-    let activeFound = false;
-    routines.forEach((task, idx) => {
-      const el = document.getElementById(`step-${idx}`);
-      if (!el) return;
-
-      if (currentHM >= task.start && currentHM < task.end) {
-        el.classList.add('active-step');
-        document.getElementById('activeSlotStatus').innerText = `⚡ လက်ရှိ: ${task.title}`;
-        activeFound = true;
-      } else {
-        el.classList.remove('active-step');
-      }
-
-      if (task.end === currentHM && !notifiedTransition.has(task.end)) {
-        const next = routines[idx + 1] ? routines[idx + 1].title : "Rest of Day Flow";
-        triggerChainAlarm(task.title, next);
-        notifiedTransition.add(task.end);
-      }
-    });
-
-    if (!activeFound) {
-      document.getElementById('activeSlotStatus').innerText = "🔔 Chain Alarm Active: အချိန်ဇယားအတိုင်း အသံမြည်ပါမည်";
+  update() {
+    // Movement
+    const dx = this.targetX - this.x;
+    const dy = this.targetY - this.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist > 3) {
+      this.x += (dx / dist) * this.speed;
+      this.y += (dy / dist) * this.speed;
     }
 
-    if (now.getSeconds() === 0 && now.getMinutes() === 0) notifiedTransition.clear();
+    // Auto Attack Nearest Vampire
+    if (this.cooldown > 0) this.cooldown--;
+    if (this.cooldown === 0) {
+      let nearestVamp = null;
+      let minDist = this.range;
+      vampires.forEach(v => {
+        const d = Math.hypot(v.x - this.x, v.y - this.y);
+        if (d < minDist) {
+          minDist = d;
+          nearestVamp = v;
+        }
+      });
+
+      if (nearestVamp) {
+        bullets.push({
+          x: this.x, y: this.y,
+          tx: nearestVamp.x, ty: nearestVamp.y,
+          dmg: this.type === 'wagon' ? 24 : 12,
+          life: 15
+        });
+        this.cooldown = this.type === 'wagon' ? 35 : 20;
+      }
+    }
   }
 
-  // Notepad & Stylus
-  const textPad = document.getElementById('textPadArea');
-  const canvasBox = document.getElementById('canvasContainer');
-  const canvas = document.getElementById('drawCanvas');
-  const ctx = canvas.getContext('2d');
-  let isPainting = false;
-  let strokeWidth = 2;
-  let strokeColor = '#232220';
+  draw() {
+    ctx.save();
+    // Selection Ring
+    if (this.selected) {
+      ctx.strokeStyle = "#00ffcc";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.type === 'wagon' ? 18 : 10, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
-  function switchMode(mode) {
-    if (mode === 'type') {
-      textPad.style.display = 'block';
-      canvasBox.style.display = 'none';
-      document.getElementById('canvasTools').style.display = 'none';
-      document.getElementById('tabType').classList.add('active');
-      document.getElementById('tabDraw').classList.remove('active');
+    // Body
+    if (this.type === 'soldier') {
+      ctx.fillStyle = this.player === 1 ? "#3498db" : "#e67e22"; // P1 Blue, P2 Orange
+      ctx.fillRect(this.x - 4, this.y - 7, 8, 14);
+      // Western Hat
+      ctx.fillStyle = "#3e2723";
+      ctx.fillRect(this.x - 6, this.y - 10, 12, 3);
     } else {
-      textPad.style.display = 'none';
-      canvasBox.style.display = 'block';
-      document.getElementById('canvasTools').style.display = 'flex';
-      document.getElementById('tabDraw').classList.add('active');
-      document.getElementById('tabType').classList.remove('active');
-      resizeCanvas();
+      // Armored Wagon (ယာဉ်)
+      ctx.fillStyle = "#5c4033";
+      ctx.fillRect(this.x - 14, this.y - 10, 28, 20);
+      ctx.fillStyle = this.player === 1 ? "#2980b9" : "#d35400";
+      ctx.fillRect(this.x - 6, this.y - 6, 12, 12);
+      // Wheels
+      ctx.fillStyle = "#111";
+      ctx.fillRect(this.x - 12, this.y - 12, 6, 4);
+      ctx.fillRect(this.x + 6, this.y - 12, 6, 4);
+      ctx.fillRect(this.x - 12, this.y + 8, 6, 4);
+      ctx.fillRect(this.x + 6, this.y + 8, 6, 4);
     }
+
+    // Health Bar
+    ctx.fillStyle = "red";
+    ctx.fillRect(this.x - 8, this.y - 15, 16, 2);
+    ctx.fillStyle = "lime";
+    ctx.fillRect(this.x - 8, this.y - 15, 16 * (this.hp / this.maxHp), 2);
+    ctx.restore();
+  }
+}
+
+// Vampire Blueprint (Enemies)
+class Vampire {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.hp = 70;
+    this.maxHp = 70;
+    this.speed = 1.1; // Night မှာ ပိုမြန်မည်
+    this.biteCooldown = 0;
   }
 
-  textPad.addEventListener('input', () => {
-    localStorage.setItem('text_note_' + document.getElementById('appDate').value, textPad.value);
-  });
+  update(isNight) {
+    this.speed = isNight ? 1.8 : 1.0;
 
-  function loadDateNotes() {
-    const date = document.getElementById('appDate').value;
-    textPad.value = localStorage.getItem('text_note_' + date) || '';
-    loadCanvasDraw();
-  }
+    // Search nearest human unit
+    let nearestUnit = null;
+    let minDist = 9999;
+    units.forEach(u => {
+      const d = Math.hypot(u.x - this.x, u.y - this.y);
+      if (d < minDist) {
+        minDist = d;
+        nearestUnit = u;
+      }
+    });
 
-  function resizeCanvas() {
-    canvas.width = canvasBox.clientWidth;
-    canvas.height = canvasBox.clientHeight;
-    loadCanvasDraw();
-  }
+    if (nearestUnit) {
+      const dx = nearestUnit.x - this.x;
+      const dy = nearestUnit.y - this.y;
+      const dist = Math.hypot(dx, dy);
 
-  function getPointerPos(e) {
-    const r = canvas.getBoundingClientRect();
-    if (e.touches && e.touches[0]) {
-      return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+      if (dist > 8) {
+        this.x += (dx / dist) * this.speed;
+        this.y += (dy / dist) * this.speed;
+      } else {
+        // Bite & Damage (ကိုက်ခြင်း)
+        if (this.biteCooldown === 0) {
+          nearestUnit.hp -= isNight ? 18 : 8;
+          this.biteCooldown = 25;
+        }
+      }
     }
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
+    if (this.biteCooldown > 0) this.biteCooldown--;
   }
 
-  function penDown(e) {
-    isPainting = true;
-    const p = getPointerPos(e);
+  draw() {
+    ctx.save();
+    // Shadowy Red Vampire Body
+    ctx.fillStyle = "#4a0000";
+    ctx.fillRect(this.x - 5, this.y - 8, 10, 16);
+    // Glowing Red Eyes
+    ctx.fillStyle = "#ff0000";
+    ctx.fillRect(this.x - 3, this.y - 6, 2, 2);
+    ctx.fillRect(this.x + 1, this.y - 6, 2, 2);
+
+    // Vampire Cloak
+    ctx.fillStyle = "#1a0000";
+    ctx.fillRect(this.x - 7, this.y - 2, 2, 10);
+    ctx.fillRect(this.x + 5, this.y - 2, 2, 10);
+    ctx.restore();
+  }
+}
+
+// Controls & Spawning
+function switchPlayer() {
+  currentPlayer = currentPlayer === 1 ? 2 : 1;
+  document.getElementById("player-label").innerText = currentPlayer === 1 ? "P2" : "P1";
+  document.getElementById("gold-display").innerText = gold[currentPlayer];
+  selectedUnits = [];
+  units.forEach(u => u.selected = false);
+}
+
+function spawnUnit(type) {
+  const cost = type === 'wagon' ? 120 : 50;
+  if (gold[currentPlayer] < cost) return;
+
+  gold[currentPlayer] -= cost;
+  document.getElementById("gold-display").innerText = gold[currentPlayer];
+
+  const origin = currentPlayer === 1 
+    ? (type === 'wagon' ? factoryP1 : baseP1) 
+    : (type === 'wagon' ? factoryP2 : baseP2);
+
+  const u = new Unit(origin.x + origin.w + 10, origin.y + 20 + Math.random() * 20, type, currentPlayer);
+  u.targetX = u.x + 40;
+  u.targetY = u.y;
+  units.push(u);
+}
+
+// Mouse Controls for RTS Command
+canvas.addEventListener("mousedown", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  if (e.button === 0) { // Left click: Select
+    isSelecting = true;
+    selectBox.x1 = mx;
+    selectBox.y1 = my;
+    selectBox.x2 = mx;
+    selectBox.y2 = my;
+  } else if (e.button === 2) { // Right click: Move / Attack Order
+    selectedUnits.forEach((u, i) => {
+      u.targetX = mx + (i % 3) * 16 - 16;
+      u.targetY = my + Math.floor(i / 3) * 16 - 16;
+    });
+  }
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  if (isSelecting) {
+    const rect = canvas.getBoundingClientRect();
+    selectBox.x2 = e.clientX - rect.left;
+    selectBox.y2 = e.clientY - rect.top;
+  }
+});
+
+canvas.addEventListener("mouseup", (e) => {
+  if (isSelecting && e.button === 0) {
+    isSelecting = false;
+    selectedUnits = [];
+    const minX = Math.min(selectBox.x1, selectBox.x2);
+    const maxX = Math.max(selectBox.x1, selectBox.x2);
+    const minY = Math.min(selectBox.y1, selectBox.y2);
+    const maxY = Math.max(selectBox.y1, selectBox.y2);
+
+    units.forEach(u => {
+      if (u.player === currentPlayer) {
+        // Drag box select or Click select
+        if ((u.x >= minX - 8 && u.x <= maxX + 8 && u.y >= minY - 8 && u.y <= maxY + 8) ||
+            Math.hypot(u.x - selectBox.x1, u.y - selectBox.y1) < 14) {
+          u.selected = true;
+          selectedUnits.push(u);
+        } else {
+          u.selected = false;
+        }
+      }
+    });
+  }
+});
+
+canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+// Game Loop
+function gameLoop() {
+  // 1. Day / Night Cycle
+  dayTime = (dayTime + 1) % 1600;
+  const isNight = dayTime > 800;
+  document.getElementById("time-display").innerText = isNight ? "NIGHT 🌙 (VAMPIRES ENRAGED)" : "DAY ☀️ (SAFE SUN)";
+  document.getElementById("time-display").style.color = isNight ? "#ff4444" : "#ffd700";
+
+  // Periodic Gold Income
+  if (dayTime % 120 === 0) {
+    gold[1] += 15;
+    gold[2] += 15;
+    document.getElementById("gold-display").innerText = gold[currentPlayer];
+  }
+
+  // 2. Spawn Vampires from Graveyard Hill
+  if (dayTime % (isNight ? 90 : 220) === 0 && vampires.length < 25) {
+    vampires.push(new Vampire(graveyard.x + 20 + Math.random() * 60, graveyard.y + 40 + Math.random() * 40));
+  }
+
+  // 3. Clear Canvas & Draw Dusty Western Terrain
+  ctx.fillStyle = "#87623b"; // Dusty Sand Dirt
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw Woods/Forest (တောအုပ်)
+  trees.forEach(t => {
+    ctx.fillStyle = "rgba(40, 20, 10, 0.3)";
     ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-  }
+    ctx.arc(t.x + 3, t.y + 3, t.r, 0, Math.PI * 2);
+    ctx.fill();
 
-  function penMove(e) {
-    if (!isPainting) return;
-    const p = getPointerPos(e);
-    ctx.lineWidth = strokeWidth;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = strokeColor;
-    ctx.lineTo(p.x, p.y);
-    ctx.stroke();
-  }
-
-  function penUp() {
-    if (!isPainting) return;
-    isPainting = false;
-    ctx.closePath();
-    saveCanvasDraw();
-  }
-
-  canvas.addEventListener('mousedown', penDown);
-  canvas.addEventListener('mousemove', penMove);
-  canvas.addEventListener('mouseup', penUp);
-  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); penDown(e); }, { passive: false });
-  canvas.addEventListener('touchmove', (e) => { e.preventDefault(); penMove(e); }, { passive: false });
-  canvas.addEventListener('touchend', penUp);
-
-  document.getElementById('inkColor').addEventListener('input', (e) => strokeColor = e.target.value);
-  function setInk(w) { strokeWidth = w; }
-
-  function saveCanvasDraw() {
-    localStorage.setItem('canvas_draw_' + document.getElementById('appDate').value, canvas.toDataURL());
-  }
-
-  function loadCanvasDraw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const data = localStorage.getItem('canvas_draw_' + document.getElementById('appDate').value);
-    if (data) {
-      const img = new Image();
-      img.src = data;
-      img.onload = () => ctx.drawImage(img, 0, 0);
-    }
-  }
-
-  function clearCanvasDraw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    localStorage.removeItem('canvas_draw_' + document.getElementById('appDate').value);
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('appDate').value = new Date().toISOString().split('T')[0];
-    renderSchedule();
-    loadDateNotes();
-    tickSystem();
-    setInterval(tickSystem, 1000);
+    ctx.fillStyle = "#1e3f20"; // Dark retro green
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#2d5a2f";
+    ctx.beginPath();
+    ctx.arc(t.x - 2, t.y - 2, t.r * 0.6, 0, Math.PI * 2);
+    ctx.fill();
   });
 
-  document.getElementById('appDate').addEventListener('change', loadDateNotes);
+  // Draw Western Buildings
+  function drawBuilding(b, color) {
+    ctx.fillStyle = "#3e2723"; // Wood outline
+    ctx.fillRect(b.x - 2, b.y - 2, b.w + 4, b.h + 4);
+    ctx.fillStyle = color;
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.fillStyle = "#f5deb3";
+    ctx.font = "10px monospace";
+    ctx.fillText(b.name, b.x + 5, b.y + 16);
+  }
+  drawBuilding(baseP1, "#4a6984");
+  drawBuilding(factoryP1, "#34495e");
+  drawBuilding(baseP2, "#b9770e");
+  drawBuilding(factoryP2, "#7e5109");
+
+  // Draw Graveyard Hill
+  ctx.fillStyle = "#2b2b2b";
+  ctx.fillRect(graveyard.x, graveyard.y, graveyard.w, graveyard.h);
+  ctx.fillStyle = "#c0392b";
+  ctx.fillText("☠️ HILL GRAVEYARD", graveyard.x + 8, graveyard.y + 20);
+  // Tombstones
+  ctx.fillStyle = "#7f8c8d";
+  ctx.fillRect(graveyard.x + 20, graveyard.y + 40, 8, 12);
+  ctx.fillRect(graveyard.x + 60, graveyard.y + 70, 8, 12);
+  ctx.fillRect(graveyard.x + 90, graveyard.y + 35, 8, 12);
+
+  // 4. Update & Draw Units
+  for (let i = units.length - 1; i >= 0; i--) {
+    const u = units[i];
+    u.update();
+    u.draw();
+    if (u.hp <= 0) units.splice(i, 1);
+  }
+
+  // 5. Update & Draw Vampires
+  for (let i = vampires.length - 1; i >= 0; i--) {
+    const v = vampires[i];
+    v.update(isNight);
+    v.draw();
+    if (v.hp <= 0) vampires.splice(i, 1);
+  }
+
+  // 6. Draw Bullets & Explosions
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    ctx.strokeStyle = "#ffeb3b";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(b.x, b.y);
+    ctx.lineTo(b.tx, b.ty);
+    ctx.stroke();
+
+    b.life--;
+    if (b.life === 1) {
+      // Deal damage
+      vampires.forEach(v => {
+        if (Math.hypot(v.x - b.tx, v.y - b.ty) < 16) v.hp -= b.dmg;
+      });
+    }
+    if (b.life <= 0) bullets.splice(i, 1);
+  }
+
+  // 7. Drag Selection Rectangle
+  if (isSelecting) {
+    ctx.strokeStyle = "#00ffcc";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(selectBox.x1, selectBox.y1, selectBox.x2 - selectBox.x1, selectBox.y2 - selectBox.y1);
+  }
+
+  // 8. Day/Night Tint Overlay
+  if (isNight) {
+    ctx.fillStyle = "rgba(10, 15, 45, 0.45)"; // Dark Blue Night Filter
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Launch Game
+gameLoop();
 </script>
 
 </body>
 </html>
-
-
