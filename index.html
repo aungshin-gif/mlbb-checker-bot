@@ -1,14 +1,45 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="my">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Tactical Outpost: Survival RTS</title>
+  <title>Nightmare Outpost: 10x Horde & Zoom RTS</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
     body {
-      background: #020408;
-      color: #e2e8f0;
+      background: #010204;
+      color: #f1f5f9;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       overflow: hidden;
       display: flex;
@@ -18,8 +49,8 @@
     }
     #top-hud {
       height: 50px;
-      background: rgba(10, 14, 23, 0.96);
-      border-bottom: 2px solid #1e293b;
+      background: rgba(8, 12, 20, 0.96);
+      border-bottom: 2px solid #ef4444;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -29,8 +60,8 @@
     .hud-left {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 13px;
+      gap: 8px;
+      font-size: 12px;
       font-weight: 700;
     }
     .btn-bar { display: flex; gap: 6px; }
@@ -38,16 +69,20 @@
       background: #1e293b;
       border: 1px solid #334155;
       color: #f8fafc;
-      padding: 6px 12px;
+      padding: 6px 10px;
       border-radius: 6px;
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s;
     }
     .hud-btn:active { transform: scale(0.95); }
+    .hud-btn.horde-alert { background: #991b1b; border-color: #ef4444; color: #fff; animation: pulseRed 1.2s infinite; }
     .hud-btn.team { background: #0284c7; border-color: #38bdf8; font-weight: bold; }
-    .hud-btn.active { background: #2563eb; border-color: #60a5fa; }
+    @keyframes pulseRed {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
     #canvas-wrap {
       position: relative;
       flex: 1;
@@ -59,21 +94,45 @@
       width: 100%;
       height: 100%;
     }
-    #threat-hud {
+    #horde-banner {
       position: absolute;
-      top: 10px;
+      top: 12px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid #ef4444;
-      color: #ef4444;
-      padding: 4px 14px;
+      background: rgba(153, 27, 27, 0.95);
+      border: 2px solid #f87171;
+      color: #fff;
+      padding: 6px 18px;
       border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
       pointer-events: none;
       z-index: 90;
-      box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+      display: none;
+    }
+    #zoom-hud {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      display: flex;
+      gap: 6px;
+      z-index: 95;
+    }
+    .zoom-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      font-size: 18px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
     }
     #mobile-hint {
       position: absolute;
@@ -96,21 +155,28 @@
   <div class="hud-left">
     <span id="player-indicator" style="color: #38bdf8;">SQUAD 1 (BLUE)</span>
     <span style="color:#475569;">|</span>
-    <span id="casualty-count" style="color: #ef4444;">Dead: 0</span>
+    <span id="threat-level" style="color: #ef4444;">HORDE ACTIVE</span>
+    <span style="color:#475569;">|</span>
+    <span id="casualty-count" style="color: #fca5a5;">Dead: 0</span>
   </div>
   <div class="btn-bar">
+    <button class="hud-btn horde-alert" onclick="triggerImmediateSwarm()">🚨 CALL 15x HORDE</button>
     <button class="hud-btn team" onclick="selectAllTeam()">🎖️ SELECT ALL TEAM</button>
-    <button class="hud-btn active" id="btnSwitch" onclick="switchPlayer()">🕹️ SWITCH SQUAD</button>
     <button class="hud-btn" onclick="spawnOperator()">+ RECRUIT</button>
   </div>
 </div>
 
-<div id="threat-hud">⚠️ DEFCON 1: HORDE INVASION ACTIVE</div>
+<div id="horde-banner">⚠️ INCOMING 15x SWARM DETECTED! DEFEND POSITION!</div>
 
 <div id="canvas-wrap">
   <canvas id="gameCanvas"></canvas>
+  <div id="zoom-hud">
+    <button class="zoom-btn" onclick="setZoomLevel(0.4)">🌍</button>
+    <button class="zoom-btn" onclick="adjustZoom(-0.25)">−</button>
+    <button class="zoom-btn" onclick="adjustZoom(0.25)">+</button>
+  </div>
   <div id="mobile-hint">
-    👉 <strong>မြေပုံရွှေ့ရန်:</strong> Screen ပေါ် လက်ဖြင့် ဖိဆွဲပါ (Drag Map) | <strong>တပ်ရွှေ့ရန်:</strong> "SELECT ALL TEAM" နှိပ်ပြီး သွားလိုရာမြေပြင်ကို ထိပါ
+    👉 လက် ၂ ချောင်းဖြင့် Pinch ဆွဲ၍ ကျုံ့/ချဲ့ပါ | Drag ဖြင့် မြေပုံရွှေ့ပါ | Tap ဖြင့် တပ်ရွှေ့ပါ
   </div>
 </div>
 
@@ -118,71 +184,47 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Sound Synthesizer Engine (Web Audio API)
+// Sound Synthesizer
 let audioCtx = null;
 function initAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 }
-
 function playGunfire() {
   if (!audioCtx) return;
   const now = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
-  
   osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(300, now);
-  osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
-
-  gain.gain.setValueAtTime(0.3, now);
+  osc.frequency.setValueAtTime(340, now);
+  osc.frequency.exponentialRampToValueAtTime(30, now + 0.08);
+  gain.gain.setValueAtTime(0.25, now);
   gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-
   osc.connect(gain);
   gain.connect(audioCtx.destination);
   osc.start(now);
   osc.stop(now + 0.08);
 }
-
-function playZombieBite() {
+function playScream() {
   if (!audioCtx) return;
   const now = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
-
   osc.type = 'triangle';
-  osc.frequency.setValueAtTime(120, now);
-  osc.frequency.linearRampToValueAtTime(60, now + 0.2);
-
+  osc.frequency.setValueAtTime(160, now);
+  osc.frequency.linearRampToValueAtTime(40, now + 0.3);
   gain.gain.setValueAtTime(0.4, now);
-  gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-
+  gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
   osc.connect(gain);
   gain.connect(audioCtx.destination);
   osc.start(now);
-  osc.stop(now + 0.2);
+  osc.stop(now + 0.3);
 }
 
-function playRadioBeep() {
-  if (!audioCtx) return;
-  const now = audioCtx.currentTime;
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(880, now);
-  gain.gain.setValueAtTime(0.2, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start(now);
-  osc.stop(now + 0.1);
-}
-
-// World Bounds
-const WORLD_W = 4000;
-const WORLD_H = 2600;
-let camera = { x: 100, y: 250 };
+// Map Dimensions
+const WORLD_W = 4200;
+const WORLD_H = 2800;
+let camera = { x: 200, y: 300 };
+let zoomScale = 1.0; // Dynamic Zoom Scale (0.35 to 1.8)
 
 let currentPlayer = 1;
 let units = [];
@@ -193,26 +235,25 @@ let scenery = [];
 let casualties = 0;
 
 // Zones
-const townZone = { x: 0, y: 0, w: 1600, h: WORLD_H };
-const forestZone = { x: 1600, y: 0, w: 2400, h: WORLD_H };
-const hiveHill = { x: 3300, y: 1000, w: 600, h: 700 };
+const townZone = { x: 0, y: 0, w: 1700, h: WORLD_H };
+const forestZone = { x: 1700, y: 0, w: 2500, h: WORLD_H };
+const hiveHill = { x: 3400, y: 1100, w: 700, h: 800 };
 
 const bases = [
-  { x: 150, y: 300, w: 200, h: 140, name: "Alpha Garrison (P1)", p: 1 },
-  { x: 150, y: 1900, w: 200, h: 140, name: "Bravo Garrison (P2)", p: 2 }
+  { x: 160, y: 350, w: 220, h: 160, name: "Alpha Garrison (P1)", p: 1 },
+  { x: 160, y: 2000, w: 220, h: 160, name: "Bravo Garrison (P2)", p: 2 }
 ];
 
-// Generate Trees
-for (let i = 0; i < 350; i++) {
+for (let i = 0; i < 360; i++) {
   scenery.push({
     x: forestZone.x + 80 + Math.random() * (forestZone.w - 160),
     y: 80 + Math.random() * (WORLD_H - 160),
-    size: 36 + Math.random() * 24
+    size: 38 + Math.random() * 26
   });
 }
 
 // -------------------------------------------------------------
-// OPERATOR (Running Footsteps & Fire)
+// SQUAD OPERATOR
 // -------------------------------------------------------------
 class TacticalOperator {
   constructor(x, y, player) {
@@ -230,7 +271,7 @@ class TacticalOperator {
     this.isMoving = false;
     this.shootCooldown = 0;
     this.muzzleTime = 0;
-    this.range = 220;
+    this.range = 230;
   }
 
   update() {
@@ -264,14 +305,14 @@ class TacticalOperator {
       if (target) {
         this.facing = Math.atan2(target.y - this.y, target.x - this.x);
         this.muzzleTime = 2;
-        this.shootCooldown = 14;
+        this.shootCooldown = 13;
         playGunfire();
 
         bullets.push({
           x: this.x + Math.cos(this.facing) * 24,
           y: this.y + Math.sin(this.facing) * 24,
           tx: target.x, ty: target.y,
-          dmg: 24, life: 6
+          dmg: 18, life: 6
         });
       }
     }
@@ -279,18 +320,14 @@ class TacticalOperator {
 
   draw() {
     const inForest = this.x > forestZone.x;
-
-    // Flashlight in forest
     if (inForest) {
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(this.facing);
-
       const grad = ctx.createRadialGradient(0, 0, 10, 160, 0, 230);
       grad.addColorStop(0, "rgba(255, 250, 210, 0.65)");
       grad.addColorStop(0.5, "rgba(255, 240, 180, 0.2)");
       grad.addColorStop(1, "rgba(0, 0, 0, 0)");
-
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.moveTo(0, 0);
@@ -301,58 +338,49 @@ class TacticalOperator {
     }
 
     ctx.save();
-
-    // Shadow
     ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
     ctx.beginPath();
     ctx.ellipse(this.x + 4, this.y + 6, 12, 6, this.facing, 0, Math.PI * 2);
     ctx.fill();
 
-    // Halo indicator
     if (this.selected) {
       ctx.strokeStyle = "#38bdf8";
       ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.arc(this.x, this.y, 22, 0, Math.PI * 2);
+      ctx.arc(this.x, this.y, 24, 0, Math.PI * 2);
       ctx.stroke();
     }
 
     ctx.translate(this.x, this.y);
     ctx.rotate(this.facing);
 
-    // Running Legs
     const legSwing = this.isMoving ? Math.sin(this.walkAnim) * 7 : 0;
     ctx.fillStyle = "#0f172a";
     ctx.fillRect(-12 + legSwing, -8, 7, 4);
     ctx.fillRect(-12 - legSwing, 4, 7, 4);
 
-    // Blue Tactical Uniform
     ctx.fillStyle = this.player === 1 ? "#1e3a8a" : "#0284c7";
     ctx.fillRect(-10, -9, 17, 18);
 
-    // Backpack
     ctx.fillStyle = "#020617";
     ctx.fillRect(-13, -7, 4, 14);
 
-    // Shoulders
+    const bodySway = this.isMoving ? Math.sin(this.walkAnim * 0.5) * 1.5 : 0;
     ctx.fillStyle = "#1e40af";
     ctx.beginPath();
-    ctx.arc(-2, -9, 4, 0, Math.PI * 2);
-    ctx.arc(-2, 9, 4, 0, Math.PI * 2);
+    ctx.arc(-2, -9 + bodySway, 4, 0, Math.PI * 2);
+    ctx.arc(-2, 9 + bodySway, 4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Arms Holding Rifle
     ctx.fillStyle = "#0f172a";
     ctx.fillRect(0, -7, 12, 4);
     ctx.fillRect(3, 4, 9, 3.5);
 
-    // M4 Carbine
     ctx.fillStyle = "#111827";
     ctx.fillRect(5, 1, 20, 3.5);
     ctx.fillStyle = "#374151";
     ctx.fillRect(9, 0, 7, 5);
 
-    // Helmet
     ctx.fillStyle = "#020617";
     ctx.beginPath();
     ctx.arc(-1, 0, 6.5, 0, Math.PI * 2);
@@ -360,7 +388,6 @@ class TacticalOperator {
     ctx.fillStyle = "#38bdf8";
     ctx.fillRect(2, -3.5, 3.5, 7);
 
-    // Muzzle Flash
     if (this.muzzleTime > 0) {
       ctx.fillStyle = "#fef08a";
       ctx.beginPath();
@@ -368,7 +395,6 @@ class TacticalOperator {
       ctx.fill();
       this.muzzleTime--;
     }
-
     ctx.restore();
 
     // Health Bar
@@ -382,17 +408,17 @@ class TacticalOperator {
 }
 
 // -------------------------------------------------------------
-// ZOMBIES (Lurching & Bite Attack)
+// DEADLY HORDE ZOMBIE CLASS (Goliaths, Sprinters, Swarmers)
 // -------------------------------------------------------------
-class BrutalZombie {
+class NightmareZombie {
   constructor(x, y, type = 'normal') {
     this.x = x;
     this.y = y;
-    this.type = type;
-    this.hp = type === 'tank' ? 320 : (type === 'sprinter' ? 60 : 100);
+    this.type = type; // 'normal', 'sprinter', 'goliath'
+    this.hp = type === 'goliath' ? 750 : (type === 'sprinter' ? 120 : 180);
     this.maxHp = this.hp;
-    this.speed = type === 'tank' ? 1.0 : (type === 'sprinter' ? 2.8 : 1.5);
-    this.damage = type === 'tank' ? 28 : (type === 'sprinter' ? 12 : 18);
+    this.speed = type === 'goliath' ? 1.1 : (type === 'sprinter' ? 3.3 : 1.9);
+    this.damage = type === 'goliath' ? 36 : (type === 'sprinter' ? 16 : 22);
     this.facing = 0;
     this.biteTimer = 0;
     this.limpCycle = Math.random() * 10;
@@ -400,7 +426,7 @@ class BrutalZombie {
 
   update() {
     let closest = null;
-    let minD = 380;
+    let minD = 500;
 
     units.forEach(u => {
       const d = Math.hypot(u.x - this.x, u.y - this.y);
@@ -416,25 +442,26 @@ class BrutalZombie {
       const dist = Math.hypot(dx, dy);
 
       this.facing = Math.atan2(dy, dx);
-      this.limpCycle += 0.25;
+      this.limpCycle += 0.3;
 
       if (dist > 14) {
-        const lurch = Math.sin(this.limpCycle) * 0.4;
+        const lurch = Math.sin(this.limpCycle) * 0.45;
         this.x += (dx / dist) * (this.speed + lurch);
         this.y += (dy / dist) * (this.speed + lurch);
       } else {
         if (this.biteTimer === 0) {
           closest.hp -= this.damage;
-          this.biteTimer = 20;
-          playZombieBite();
+          this.biteTimer = 18;
+          playScream();
           bloodSplats.push(new BloodSplat(closest.x, closest.y));
 
+          // Death & Immediate Infection Spawn
           if (closest.hp <= 0) {
             casualties++;
             document.getElementById("casualty-count").innerText = `Dead: ${casualties}`;
             setTimeout(() => {
-              zombies.push(new BrutalZombie(closest.x, closest.y, 'sprinter'));
-            }, 800);
+              zombies.push(new NightmareZombie(closest.x, closest.y, 'sprinter'));
+            }, 500);
           }
         }
       }
@@ -446,19 +473,19 @@ class BrutalZombie {
     ctx.save();
     ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
     ctx.beginPath();
-    ctx.ellipse(this.x + 3, this.y + 5, this.type === 'tank' ? 16 : 10, 6, this.facing, 0, Math.PI * 2);
+    ctx.ellipse(this.x + 3, this.y + 5, this.type === 'goliath' ? 20 : 10, 6, this.facing, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.translate(this.x, this.y);
     ctx.rotate(this.facing);
 
-    const scale = this.type === 'tank' ? 1.5 : 1.0;
+    const scale = this.type === 'goliath' ? 1.8 : (this.type === 'sprinter' ? 0.95 : 1.1);
     ctx.scale(scale, scale);
 
-    ctx.fillStyle = this.type === 'tank' ? "#1c1917" : "#334155";
+    ctx.fillStyle = this.type === 'goliath' ? "#1c1917" : (this.type === 'sprinter' ? "#581c87" : "#334155");
     ctx.fillRect(-8, -8, 14, 16);
 
-    const armWiggle = Math.sin(this.limpCycle) * 4;
+    const armWiggle = Math.sin(this.limpCycle) * 5;
     ctx.fillStyle = "#475569";
     ctx.fillRect(4, -8 + armWiggle, 14, 3.5);
     ctx.fillRect(4, 5 - armWiggle, 14, 3.5);
@@ -469,21 +496,29 @@ class BrutalZombie {
     ctx.fill();
 
     ctx.fillStyle = "#ef4444";
-    ctx.fillRect(3, -3, 2, 2);
-    ctx.fillRect(3, 1, 2, 2);
+    ctx.fillRect(3, -3, 2.5, 2.5);
+    ctx.fillRect(3, 1, 2.5, 2.5);
 
     ctx.restore();
+
+    // Goliath Boss Health Bar
+    if (this.type === 'goliath') {
+      ctx.fillStyle = "rgba(0,0,0,0.7)";
+      ctx.fillRect(this.x - 22, this.y - 32, 44, 5);
+      ctx.fillStyle = "#dc2626";
+      ctx.fillRect(this.x - 22, this.y - 32, 44 * (this.hp / this.maxHp), 5);
+    }
   }
 }
 
 class BloodSplat {
   constructor(x, y) {
-    this.x = x + (Math.random() * 16 - 8);
-    this.y = y + (Math.random() * 16 - 8);
-    this.size = 6 + Math.random() * 12;
+    this.x = x + (Math.random() * 18 - 9);
+    this.y = y + (Math.random() * 18 - 9);
+    this.size = 8 + Math.random() * 14;
   }
   draw() {
-    ctx.fillStyle = "rgba(153, 27, 27, 0.65)";
+    ctx.fillStyle = "rgba(185, 28, 28, 0.75)";
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
     ctx.fill();
@@ -491,106 +526,184 @@ class BloodSplat {
 }
 
 // -------------------------------------------------------------
-// MAP DRAGGING & TOUCH NAVIGATION (Screen ထိဆွဲပြီး မြေပုံရွှေ့ခြင်း)
+// 10-15x SWARM PACK GENERATOR (အကောင် ၁၀-၁၅ ကောင် တပြိုင်နက် ပြေးထွက်လာခြင်း)
 // -------------------------------------------------------------
-let isPanningMap = false;
-let startPointer = { x: 0, y: 0 };
-let startCam = { x: 0, y: 0 };
-let touchStartTime = 0;
+function spawnSwarmCluster(count = 12) {
+  const originX = hiveHill.x + Math.random() * hiveHill.w;
+  const originY = hiveHill.y + Math.random() * hiveHill.h;
 
-function pointerDown(clientX, clientY) {
-  initAudio();
-  isPanningMap = true;
-  startPointer.x = clientX;
-  startPointer.y = clientY;
-  startCam.x = camera.x;
-  startCam.y = camera.y;
-  touchStartTime = Date.now();
-}
+  const banner = document.getElementById("horde-banner");
+  banner.style.display = "block";
+  setTimeout(() => banner.style.display = "none", 4000);
 
-function pointerMove(clientX, clientY) {
-  if (isPanningMap) {
-    const dx = clientX - startPointer.x;
-    const dy = clientY - startPointer.y;
-    // Screen ပေါ် ဆွဲလိုက်သည့်အတိုင်း မြေပုံ ရွှေ့လျားခြင်း
-    camera.x = startCam.x - dx;
-    camera.y = startCam.y - dy;
-    camera.x = Math.max(0, Math.min(camera.x, WORLD_W - canvas.width));
-    camera.y = Math.max(0, Math.min(camera.y, WORLD_H - canvas.height));
+  for (let i = 0; i < count; i++) {
+    const sx = originX + (Math.random() * 140 - 70);
+    const sy = originY + (Math.random() * 140 - 70);
+    const type = i === 0 ? 'goliath' : (Math.random() < 0.4 ? 'sprinter' : 'normal');
+    zombies.push(new NightmareZombie(sx, sy, type));
   }
 }
 
-function pointerUp(clientX, clientY) {
-  if (!isPanningMap) return;
-  isPanningMap = false;
+function triggerImmediateSwarm() {
+  initAudio();
+  playScream();
+  spawnSwarmCluster(15);
+}
 
-  const distMoved = Math.hypot(clientX - startPointer.x, clientY - startPointer.y);
-  const touchDuration = Date.now() - touchStartTime;
+// Periodic Automatic 12x Swarm Waves
+setInterval(() => {
+  if (units.length > 0) {
+    spawnSwarmCluster(12);
+  }
+}, 22000);
 
-  // အကယ်၍ မဆွဲဘဲ မြေပြင်ကို တစ်ချက်ထိရုံသာ ထိလိုက်ပါက (Tap Command)
-  if (distMoved < 12 && touchDuration < 300) {
-    const worldX = clientX + camera.x;
-    const worldY = clientY + camera.y;
+// -------------------------------------------------------------
+// PINCH-TO-ZOOM & MULTI-TOUCH ENGINE (Screen ကျုံ့ချဲ့ခြင်းနှင့် Drag)
+// -------------------------------------------------------------
+let isTouching = false;
+let touchStartDist = 0;
+let initialScale = 1.0;
+let lastPointer = { x: 0, y: 0 };
+let touchStartTime = 0;
 
+function getTouchDistance(touches) {
+  return Math.hypot(
+    touches[0].clientX - touches[1].clientX,
+    touches[0].clientY - touches[1].clientY
+  );
+}
+
+canvas.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  initAudio();
+  touchStartTime = Date.now();
+
+  if (e.touches.length === 2) {
+    // Two-finger Pinch Zoom
+    touchStartDist = getTouchDistance(e.touches);
+    initialScale = zoomScale;
+  } else if (e.touches.length === 1) {
+    // Single finger Map Drag
+    isTouching = true;
+    lastPointer.x = e.touches[0].clientX;
+    lastPointer.y = e.touches[0].clientY;
+  }
+}, { passive: false });
+
+canvas.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+  if (e.touches.length === 2) {
+    const currentDist = getTouchDistance(e.touches);
+    if (touchStartDist > 0) {
+      const scaleChange = currentDist / touchStartDist;
+      zoomScale = Math.max(0.35, Math.min(1.8, initialScale * scaleChange));
+    }
+  } else if (e.touches.length === 1 && isTouching) {
+    const dx = e.touches[0].clientX - lastPointer.x;
+    const dy = e.touches[0].clientY - lastPointer.y;
+    camera.x -= dx / zoomScale;
+    camera.y -= dy / zoomScale;
+    clampCamera();
+    lastPointer.x = e.touches[0].clientX;
+    lastPointer.y = e.touches[0].clientY;
+  }
+}, { passive: false });
+
+canvas.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  if (e.touches.length < 2) touchStartDist = 0;
+  if (e.touches.length === 0) {
+    isTouching = false;
+    const duration = Date.now() - touchStartTime;
+    // Tap to move team
+    if (duration < 250) {
+      const touch = e.changedTouches[0];
+      const rect = canvas.getBoundingClientRect();
+      const screenX = touch.clientX - rect.left;
+      const screenY = touch.clientY - rect.top;
+
+      const worldX = (screenX / zoomScale) + camera.x;
+      const worldY = (screenY / zoomScale) + camera.y;
+
+      const selected = units.filter(u => u.selected && u.player === currentPlayer);
+      if (selected.length > 0) {
+        selected.forEach((u, i) => {
+          u.targetX = worldX + (i % 4) * 32 - 48;
+          u.targetY = worldY + Math.floor(i / 4) * 32 - 48;
+        });
+      }
+    }
+  }
+}, { passive: false });
+
+// Mouse Wheel Zoom (ကွန်ပျူတာအတွက်)
+canvas.addEventListener("wheel", (e) => {
+  e.preventDefault();
+  const zoomFactor = e.deltaY < 0 ? 0.15 : -0.15;
+  adjustZoom(zoomFactor);
+}, { passive: false });
+
+// Mouse Drag Map & Tap
+let isMouseDown = false;
+canvas.addEventListener("mousedown", (e) => {
+  isMouseDown = true;
+  lastPointer.x = e.clientX;
+  lastPointer.y = e.clientY;
+  touchStartTime = Date.now();
+});
+canvas.addEventListener("mousemove", (e) => {
+  if (isMouseDown) {
+    const dx = e.clientX - lastPointer.x;
+    const dy = e.clientY - lastPointer.y;
+    camera.x -= dx / zoomScale;
+    camera.y -= dy / zoomScale;
+    clampCamera();
+    lastPointer.x = e.clientX;
+    lastPointer.y = e.clientY;
+  }
+});
+canvas.addEventListener("mouseup", (e) => {
+  isMouseDown = false;
+  if (Date.now() - touchStartTime < 250) {
+    const rect = canvas.getBoundingClientRect();
+    const worldX = ((e.clientX - rect.left) / zoomScale) + camera.x;
+    const worldY = ((e.clientY - rect.top) / zoomScale) + camera.y;
     const selected = units.filter(u => u.selected && u.player === currentPlayer);
     if (selected.length > 0) {
-      playRadioBeep();
       selected.forEach((u, i) => {
         u.targetX = worldX + (i % 4) * 32 - 48;
         u.targetY = worldY + Math.floor(i / 4) * 32 - 48;
       });
     }
   }
+});
+
+function adjustZoom(amount) {
+  zoomScale = Math.max(0.35, Math.min(1.8, zoomScale + amount));
+  clampCamera();
+}
+function setZoomLevel(level) {
+  zoomScale = level;
+  clampCamera();
+}
+function clampCamera() {
+  const visibleW = canvas.width / zoomScale;
+  const visibleH = canvas.height / zoomScale;
+  camera.x = Math.max(0, Math.min(camera.x, WORLD_W - visibleW));
+  camera.y = Math.max(0, Math.min(camera.y, WORLD_H - visibleH));
 }
 
-// Touch Handlers
-canvas.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  const t = e.touches[0];
-  pointerDown(t.clientX, t.clientY);
-}, { passive: false });
-
-canvas.addEventListener("touchmove", (e) => {
-  e.preventDefault();
-  const t = e.touches[0];
-  pointerMove(t.clientX, t.clientY);
-}, { passive: false });
-
-canvas.addEventListener("touchend", (e) => {
-  e.preventDefault();
-  const t = e.changedTouches[0];
-  pointerUp(t.clientX, t.clientY);
-}, { passive: false });
-
-// Mouse Handlers
-canvas.addEventListener("mousedown", (e) => pointerDown(e.clientX, e.clientY));
-canvas.addEventListener("mousemove", (e) => pointerMove(e.clientX, e.clientY));
-canvas.addEventListener("mouseup", (e) => pointerUp(e.clientX, e.clientY));
-
 // -------------------------------------------------------------
-// TEAM COMMANDS & BUTTONS
+// TEAM CONTROLS
 // -------------------------------------------------------------
 function selectAllTeam() {
   initAudio();
-  playRadioBeep();
-  units.forEach(u => {
-    u.selected = (u.player === currentPlayer);
-  });
-}
-
-function switchPlayer() {
-  initAudio();
-  playRadioBeep();
-  currentPlayer = currentPlayer === 1 ? 2 : 1;
-  document.getElementById("player-indicator").innerText = `SQUAD ${currentPlayer} (BLUE)`;
-  document.getElementById("btnSwitch").innerText = `🕹️ SWITCH TO P${currentPlayer === 1 ? 2 : 1}`;
-  selectAllTeam();
+  units.forEach(u => u.selected = (u.player === currentPlayer));
 }
 
 function spawnOperator() {
   initAudio();
-  playRadioBeep();
-  const base = currentPlayer === 1 ? bases[0] : bases[1];
+  const base = bases[0];
   const u = new TacticalOperator(base.x + base.w + 20, base.y + 30 + Math.random() * 50, currentPlayer);
   u.targetX = u.x + 80;
   u.targetY = u.y;
@@ -598,46 +711,28 @@ function spawnOperator() {
   units.push(u);
 }
 
-function maintainHorde() {
-  const currentUnits = units.length || 1;
-  const targetZombies = Math.max(14, Math.ceil(currentUnits * 2.2));
-
-  if (zombies.length < targetZombies) {
-    const isForest = Math.random() < 0.75;
-    let sx, sy;
-    if (isForest) {
-      sx = forestZone.x + 100 + Math.random() * (forestZone.w - 300);
-      sy = 100 + Math.random() * (WORLD_H - 200);
-    } else {
-      sx = 500 + Math.random() * 800;
-      sy = 200 + Math.random() * (WORLD_H - 400);
-    }
-
-    const rand = Math.random();
-    const type = rand < 0.2 ? 'tank' : (rand < 0.5 ? 'sprinter' : 'normal');
-    zombies.push(new BrutalZombie(sx, sy, type));
-  }
-}
-
 function resize() {
   canvas.width = canvas.parentElement.clientWidth;
   canvas.height = canvas.parentElement.clientHeight;
+  clampCamera();
 }
 window.addEventListener("resize", resize);
 resize();
 
-// Deploy Initial Squad
-for (let i = 0; i < 4; i++) spawnOperator();
+// Deploy Initial Squad & First Horde Pack
+for (let i = 0; i < 5; i++) spawnOperator();
 selectAllTeam();
+spawnSwarmCluster(12);
 
 // -------------------------------------------------------------
-// MAIN RENDER LOOP
+// ENGINE RENDER LOOP
 // -------------------------------------------------------------
 function renderLoop() {
-  maintainHorde();
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
+
+  // Apply Camera Zoom & Pan Transform
+  ctx.scale(zoomScale, zoomScale);
   ctx.translate(-camera.x, -camera.y);
 
   // Terrain
@@ -649,12 +744,12 @@ function renderLoop() {
 
   // Roads
   ctx.strokeStyle = "rgba(45, 30, 15, 0.4)";
-  ctx.lineWidth = 50;
+  ctx.lineWidth = 55;
   ctx.beginPath();
   ctx.moveTo(200, 350);
   ctx.lineTo(1200, 750);
   ctx.lineTo(2400, 1300);
-  ctx.lineTo(3300, 1350);
+  ctx.lineTo(3400, 1350);
   ctx.stroke();
 
   // Bases
@@ -671,14 +766,14 @@ function renderLoop() {
     ctx.fillText(b.name, b.x + 16, b.y + 50);
   });
 
-  // Hive Hill
+  // Hive Hill (Swarm Lair)
   ctx.fillStyle = "#020617";
   ctx.fillRect(hiveHill.x, hiveHill.y, hiveHill.w, hiveHill.h);
   ctx.fillStyle = "#ef4444";
-  ctx.font = "bold 16px sans-serif";
-  ctx.fillText("☠️ THE ABYSSAL HIVE", hiveHill.x + 20, hiveHill.y + 40);
+  ctx.font = "bold 18px sans-serif";
+  ctx.fillText("☠️ SWARM PACK BREEDING PIT (HORDE SPAWN)", hiveHill.x + 24, hiveHill.y + 50);
 
-  // Blood Splatters
+  // Blood Stains
   bloodSplats.forEach(b => b.draw());
 
   // Trees
@@ -726,7 +821,7 @@ function renderLoop() {
     b.life--;
     if (b.life === 1) {
       zombies.forEach(z => {
-        if (Math.hypot(z.x - b.tx, z.y - b.ty) < 26) {
+        if (Math.hypot(z.x - b.tx, z.y - b.ty) < (z.type === 'goliath' ? 36 : 24)) {
           z.hp -= b.dmg;
           bloodSplats.push(new BloodSplat(z.x, z.y));
         }
@@ -744,3 +839,4 @@ renderLoop();
 
 </body>
 </html>
+
