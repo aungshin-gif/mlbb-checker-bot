@@ -2,342 +2,525 @@
 <html lang="my">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Western Outpost 1998 — RTS Strategy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Zero Hour: Western Tactical Map RTS</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
-      background: #111;
-      color: #eee;
-      font-family: 'Courier New', Courier, monospace;
+      background: #080a0e;
+      color: #cbd5e1;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      overflow: hidden;
+      height: 100vh;
     }
-    #ui-bar {
-      width: 100vw;
-      max-width: 900px;
-      background: #2b1f14;
-      border-bottom: 2px solid #5a4128;
-      padding: 8px 12px;
+    #top-bar {
+      height: 44px;
+      background: #141721;
+      border-bottom: 2px solid #283144;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
+      padding: 0 16px;
       font-size: 13px;
+      z-index: 10;
     }
-    .btn {
-      background: #4a3525;
-      border: 1px solid #8c6743;
-      color: #f5deb3;
-      padding: 5px 10px;
-      font-family: inherit;
+    .btn-group { display: flex; gap: 8px; }
+    .rts-btn {
+      background: #1e2638;
+      border: 1px solid #3d4c6b;
+      color: #f1f5f9;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 4px;
       cursor: pointer;
-      font-weight: bold;
+      transition: all 0.15s ease;
     }
-    .btn:active { background: #8c6743; color: #fff; }
-    .btn-switch { background: #8b0000; border-color: #ff4500; color: white; }
-    #canvas-container {
+    .rts-btn:hover { background: #2b3852; border-color: #38bdf8; }
+    .rts-btn.switch { background: #0284c7; border-color: #38bdf8; }
+    #viewport-container {
       position: relative;
-      border: 2px solid #5a4128;
-      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      flex: 1;
+      width: 100vw;
+      overflow: hidden;
+      cursor: crosshair;
     }
-    canvas { display: block; background: #8f6c42; cursor: crosshair; }
-    #instructions {
-      font-size: 11px;
-      color: #aaa;
-      padding: 4px;
-      text-align: center;
+    canvas#rtsCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    /* Minimap HUD */
+    #minimap-wrapper {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      width: 220px;
+      height: 152px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 2px solid #38bdf8;
+      border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+      overflow: hidden;
+      z-index: 20;
+    }
+    canvas#minimapCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    #hud-info {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #334155;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #94a3b8;
+      pointer-events: none;
+      z-index: 20;
     }
   </style>
 </head>
 <body>
 
-<div id="ui-bar">
+<div id="top-bar">
   <div>
-    <strong>TIME:</strong> <span id="time-display">DAY (12:00)</span> | 
-    <strong>GOLD:</strong> <span id="gold-display" style="color: #ffd700;">300</span>
+    <strong style="color: #38bdf8;">COMMAND:</strong> ZERO HOUR EXTENDED MAP | 
+    <strong>ACTIVE:</strong> <span id="squad-text" style="color: #60a5fa; font-weight: bold;">SQUAD 1 (BLUE)</span>
   </div>
-  <div>
-    <button class="btn btn-switch" onclick="switchPlayer()">🕹️ SWITCH TO <span id="player-label">P2</span></button>
-    <button class="btn" onclick="spawnUnit('soldier')">🎖️ Recruit Soldier (50G)</button>
-    <button class="btn" onclick="spawnUnit('wagon')">🚜 Build Wagon (120G)</button>
+  <div class="btn-group">
+    <button class="rts-btn switch" onclick="switchPlayer()">🕹️ SWITCH TO <span id="switch-text">P2</span></button>
+    <button class="rts-btn" onclick="deployUnit('soldier')">🎖️ Train Blue Suit (50G)</button>
+    <button class="rts-btn" onclick="deployUnit('vehicle')">🚜 Build Heavy Wagon (120G)</button>
   </div>
 </div>
 
-<div id="canvas-container">
-  <canvas id="gameCanvas" width="900" height="520"></canvas>
-</div>
-
-<div id="instructions">
-  [ထိန်းချုပ်နည်း] စစ်သား/ယာဉ်ကို Click သို့မဟုတ် Drag ဆွဲပြီး ရွေးပါ -> သွားလိုရာ မြေနေရာကို Right Click (သို့မဟုတ် Screen ကို ပုတ်ပြီး အမိန့်ပေးပါ)။ တောထဲက Vampire များကို အဖွဲ့လိုက် ပစ်ခတ်တိုက်ခိုက်ပါ။
+<div id="viewport-container">
+  <canvas id="rtsCanvas"></canvas>
+  <div id="minimap-wrapper">
+    <canvas id="minimapCanvas" width="220" height="152"></canvas>
+  </div>
+  <div id="hud-info">
+    [Controls] W, A, S, D (သို့မဟုတ် မြေပြင်အစွန်းသို့ Mouse ရွှေ့) = ကင်မရာရွှေ့မည် | Drag Box = တပ်စုရွေးချယ် | Right-Click = နေရာရွှေ့အမိန့်ပေး
+  </div>
 </div>
 
 <script>
-const canvas = document.getElementById("gameCanvas");
+const canvas = document.getElementById("rtsCanvas");
 const ctx = canvas.getContext("2d");
+const miniCanvas = document.getElementById("minimapCanvas");
+const miniCtx = miniCanvas.getContext("2d");
+
+// Realistic World Dimensions (Map အကျယ်ကြီး)
+const WORLD_WIDTH = 2600;
+const WORLD_HEIGHT = 1800;
+
+// Camera
+let camera = { x: 100, y: 300, speed: 12 };
+let keys = {};
 
 // Game State
-let currentPlayer = 1; // 1 or 2
-let gold = { 1: 250, 2: 250 };
-let dayTime = 0; // 0 to 1200 (Day: 0-600, Night: 600-1200)
+let currentPlayer = 1;
 let selectedUnits = [];
-let isSelecting = false;
-let selectBox = { x1: 0, y1: 0, x2: 0, y2: 0 };
+let isBoxSelecting = false;
+let selectBox = { startX: 0, startY: 0, endX: 0, endY: 0 };
 
-// Entities
 let units = [];
-let vampires = [];
+let zombies = [];
 let bullets = [];
-let trees = [];
+let scenery = [];
 
-// Map Structures
-const baseP1 = { x: 80, y: 100, w: 90, h: 70, name: "P1 Barracks", owner: 1 };
-const factoryP1 = { x: 80, y: 200, w: 80, h: 60, name: "P1 Wagon Works", owner: 1 };
+// Territory Definition
+const townZone = { x: 0, y: 0, w: 1100, h: WORLD_HEIGHT };
+const forestZone = { x: 1100, y: 0, w: 1500, h: WORLD_HEIGHT };
+const graveyardHill = { x: 2100, y: 650, w: 380, h: 480 };
 
-const baseP2 = { x: 80, y: 350, w: 90, h: 70, name: "P2 Barracks", owner: 2 };
-const factoryP2 = { x: 80, y: 440, w: 80, h: 60, name: "P2 Wagon Works", owner: 2 };
+// Outposts / Bases
+const bases = [
+  { x: 140, y: 220, w: 160, h: 120, name: "P1 Blue Barracks", p: 1 },
+  { x: 140, y: 1250, w: 160, h: 120, name: "P2 Blue Barracks", p: 2 },
+  { x: 550, y: 400, w: 180, h: 140, name: "Western Bank & Saloon" },
+  { x: 550, y: 1050, w: 180, h: 140, name: "Town Courthouse" }
+];
 
-const graveyard = { x: 740, y: 200, w: 120, h: 120, name: "Cursed Hill Graveyard" };
-
-// Generate Woods/Forest (တောအုပ်)
-for (let i = 0; i < 45; i++) {
-  trees.push({
-    x: 350 + Math.random() * 260,
-    y: 40 + Math.random() * 440,
-    r: 14 + Math.random() * 10
+// Generate Detailed Realistic Scenery (Trees & Boulders)
+for (let i = 0; i < 220; i++) {
+  scenery.push({
+    x: forestZone.x + 80 + Math.random() * (forestZone.w - 180),
+    y: 80 + Math.random() * (WORLD_HEIGHT - 160),
+    radius: 20 + Math.random() * 18,
+    type: Math.random() < 0.85 ? 'tree' : 'rock'
   });
 }
 
-// Unit Blueprint
-class Unit {
-  constructor(x, y, type, player) {
+// Blue Tactical Suit (Zero Hour Guard & Move Stance)
+class BlueSoldier {
+  constructor(x, y, player, isVehicle = false) {
     this.x = x;
     this.y = y;
-    this.type = type; // 'soldier' or 'wagon'
     this.player = player;
-    this.selected = false;
+    this.isVehicle = isVehicle;
     this.targetX = x;
     this.targetY = y;
-    this.hp = type === 'wagon' ? 220 : 60;
+    this.selected = false;
+    this.hp = isVehicle ? 320 : 80;
     this.maxHp = this.hp;
-    this.speed = type === 'wagon' ? 1.2 : 1.6;
-    this.range = type === 'wagon' ? 140 : 90;
+    this.speed = isVehicle ? 1.8 : 2.6;
+    this.range = isVehicle ? 220 : 150;
     this.cooldown = 0;
+    this.facing = 0;
+    this.walkCycle = 0;
   }
 
   update() {
-    // Movement
     const dx = this.targetX - this.x;
     const dy = this.targetY - this.y;
     const dist = Math.hypot(dx, dy);
-    if (dist > 3) {
+
+    if (dist > 5) {
+      this.facing = Math.atan2(dy, dx);
       this.x += (dx / dist) * this.speed;
       this.y += (dy / dist) * this.speed;
+      this.walkCycle += 0.2;
     }
 
-    // Auto Attack Nearest Vampire
+    // Guard & Attack nearest Zombie
     if (this.cooldown > 0) this.cooldown--;
     if (this.cooldown === 0) {
-      let nearestVamp = null;
-      let minDist = this.range;
-      vampires.forEach(v => {
-        const d = Math.hypot(v.x - this.x, v.y - this.y);
-        if (d < minDist) {
-          minDist = d;
-          nearestVamp = v;
+      let target = null;
+      let minD = this.range;
+
+      zombies.forEach(z => {
+        const d = Math.hypot(z.x - this.x, z.y - this.y);
+        if (d < minD) {
+          minD = d;
+          target = z;
         }
       });
 
-      if (nearestVamp) {
+      if (target) {
+        this.facing = Math.atan2(target.y - this.y, target.x - this.x);
         bullets.push({
           x: this.x, y: this.y,
-          tx: nearestVamp.x, ty: nearestVamp.y,
-          dmg: this.type === 'wagon' ? 24 : 12,
-          life: 15
+          tx: target.x, ty: target.y,
+          dmg: this.isVehicle ? 32 : 18,
+          life: 8
         });
-        this.cooldown = this.type === 'wagon' ? 35 : 20;
+        this.cooldown = this.isVehicle ? 26 : 16;
       }
     }
   }
 
   draw() {
-    ctx.save();
-    // Selection Ring
-    if (this.selected) {
-      ctx.strokeStyle = "#00ffcc";
-      ctx.lineWidth = 1.5;
+    const inForest = this.x > forestZone.x;
+
+    // Realistic Conical Flashlight (တောထဲရောက်ပါက အဆင့်မြင့် ဓာတ်မီးကွင်း)
+    if (inForest) {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.facing);
+
+      const grad = ctx.createRadialGradient(0, 0, 10, 140, 0, 180);
+      grad.addColorStop(0, "rgba(255, 252, 220, 0.55)");
+      grad.addColorStop(0.6, "rgba(255, 245, 180, 0.15)");
+      grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = grad;
+
       ctx.beginPath();
-      ctx.arc(this.x, this.y, this.type === 'wagon' ? 18 : 10, 0, Math.PI * 2);
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, 180, -Math.PI / 4.5, Math.PI / 4.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.save();
+    // Selection Halo
+    if (this.selected) {
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.isVehicle ? 26 : 14, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    // Body
-    if (this.type === 'soldier') {
-      ctx.fillStyle = this.player === 1 ? "#3498db" : "#e67e22"; // P1 Blue, P2 Orange
-      ctx.fillRect(this.x - 4, this.y - 7, 8, 14);
-      // Western Hat
-      ctx.fillStyle = "#3e2723";
-      ctx.fillRect(this.x - 6, this.y - 10, 12, 3);
+    // Drop Shadow
+    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    ctx.beginPath();
+    ctx.ellipse(this.x + 2, this.y + 4, this.isVehicle ? 22 : 8, this.isVehicle ? 12 : 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (this.isVehicle) {
+      // Armored Heavy Truck
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(this.x - 20, this.y - 14, 40, 28);
+      ctx.fillStyle = this.player === 1 ? "#2563eb" : "#0284c7";
+      ctx.fillRect(this.x - 10, this.y - 10, 20, 20);
+      // Cannon
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x + Math.cos(this.facing) * 22, this.y + Math.sin(this.facing) * 22);
+      ctx.stroke();
     } else {
-      // Armored Wagon (ယာဉ်)
-      ctx.fillStyle = "#5c4033";
-      ctx.fillRect(this.x - 14, this.y - 10, 28, 20);
-      ctx.fillStyle = this.player === 1 ? "#2980b9" : "#d35400";
-      ctx.fillRect(this.x - 6, this.y - 6, 12, 12);
-      // Wheels
-      ctx.fillStyle = "#111";
-      ctx.fillRect(this.x - 12, this.y - 12, 6, 4);
-      ctx.fillRect(this.x + 6, this.y - 12, 6, 4);
-      ctx.fillRect(this.x - 12, this.y + 8, 6, 4);
-      ctx.fillRect(this.x + 6, this.y + 8, 6, 4);
+      // Blue Tactical Suit Model
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.facing);
+
+      // Limbs Animation
+      const legOffset = Math.sin(this.walkCycle) * 3;
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(-6 + legOffset, -6, 5, 3);
+      ctx.fillRect(-6 - legOffset, 3, 5, 3);
+
+      // Body (Navy Blue Tactical Suit)
+      ctx.fillStyle = this.player === 1 ? "#1d4ed8" : "#0284c7";
+      ctx.fillRect(-7, -5, 14, 10);
+
+      // Helmet & Visor
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillRect(2, -2, 3, 4);
+
+      // Rifle Barrel
+      ctx.fillStyle = "#475569";
+      ctx.fillRect(4, 2, 9, 3);
+      ctx.restore();
     }
 
     // Health Bar
-    ctx.fillStyle = "red";
-    ctx.fillRect(this.x - 8, this.y - 15, 16, 2);
-    ctx.fillStyle = "lime";
-    ctx.fillRect(this.x - 8, this.y - 15, 16 * (this.hp / this.maxHp), 2);
+    ctx.fillStyle = "#dc2626";
+    ctx.fillRect(this.x - 10, this.y - 18, 20, 3);
+    ctx.fillStyle = "#22c55e";
+    ctx.fillRect(this.x - 10, this.y - 18, 20 * (this.hp / this.maxHp), 3);
     ctx.restore();
   }
 }
 
-// Vampire Blueprint (Enemies)
-class Vampire {
-  constructor(x, y) {
+// Territorial Ambush Zombie
+class ZombieThreat {
+  constructor(x, y, territory) {
     this.x = x;
     this.y = y;
+    this.originX = x;
+    this.originY = y;
+    this.territory = territory;
     this.hp = 70;
     this.maxHp = 70;
-    this.speed = 1.1; // Night မှာ ပိုမြန်မည်
-    this.biteCooldown = 0;
+    this.speed = 1.25;
+    this.biteTimer = 0;
+    this.patrolTimer = 0;
+    this.patrolX = x;
+    this.patrolY = y;
+    this.aggroRadius = 140;
   }
 
-  update(isNight) {
-    this.speed = isNight ? 1.8 : 1.0;
+  update() {
+    let closestUnit = null;
+    let minD = this.aggroRadius;
 
-    // Search nearest human unit
-    let nearestUnit = null;
-    let minDist = 9999;
     units.forEach(u => {
       const d = Math.hypot(u.x - this.x, u.y - this.y);
-      if (d < minDist) {
-        minDist = d;
-        nearestUnit = u;
+      if (d < minD) {
+        minD = d;
+        closestUnit = u;
       }
     });
 
-    if (nearestUnit) {
-      const dx = nearestUnit.x - this.x;
-      const dy = nearestUnit.y - this.y;
+    if (closestUnit) {
+      // Chase Target
+      const dx = closestUnit.x - this.x;
+      const dy = closestUnit.y - this.y;
       const dist = Math.hypot(dx, dy);
 
-      if (dist > 8) {
-        this.x += (dx / dist) * this.speed;
-        this.y += (dy / dist) * this.speed;
+      if (dist > 10) {
+        this.x += (dx / dist) * 1.7;
+        this.y += (dy / dist) * 1.7;
       } else {
-        // Bite & Damage (ကိုက်ခြင်း)
-        if (this.biteCooldown === 0) {
-          nearestUnit.hp -= isNight ? 18 : 8;
-          this.biteCooldown = 25;
+        if (this.biteTimer === 0) {
+          closestUnit.hp -= 14;
+          this.biteTimer = 22;
         }
       }
+    } else {
+      // Patrol within territory
+      this.patrolTimer--;
+      if (this.patrolTimer <= 0) {
+        this.patrolX = this.originX + (Math.random() * 120 - 60);
+        this.patrolY = this.originY + (Math.random() * 120 - 60);
+        this.patrolTimer = 90 + Math.random() * 100;
+      }
+      const pdx = this.patrolX - this.x;
+      const pdy = this.patrolY - this.y;
+      const pdist = Math.hypot(pdx, pdy);
+      if (pdist > 2) {
+        this.x += (pdx / pdist) * 0.5;
+        this.y += (pdy / pdist) * 0.5;
+      }
     }
-    if (this.biteCooldown > 0) this.biteCooldown--;
+
+    if (this.biteTimer > 0) this.biteTimer--;
   }
 
   draw() {
     ctx.save();
-    // Shadowy Red Vampire Body
-    ctx.fillStyle = "#4a0000";
-    ctx.fillRect(this.x - 5, this.y - 8, 10, 16);
-    // Glowing Red Eyes
-    ctx.fillStyle = "#ff0000";
-    ctx.fillRect(this.x - 3, this.y - 6, 2, 2);
-    ctx.fillRect(this.x + 1, this.y - 6, 2, 2);
+    // Drop shadow
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.beginPath();
+    ctx.ellipse(this.x + 2, this.y + 4, 7, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Vampire Cloak
-    ctx.fillStyle = "#1a0000";
-    ctx.fillRect(this.x - 7, this.y - 2, 2, 10);
-    ctx.fillRect(this.x + 5, this.y - 2, 2, 10);
+    // Decayed Gray Body
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(this.x - 6, this.y - 6, 12, 12);
+    // Glowing Blood Eyes
+    ctx.fillStyle = "#dc2626";
+    ctx.fillRect(this.x - 3, this.y - 4, 2, 2);
+    ctx.fillRect(this.x + 1, this.y - 4, 2, 2);
     ctx.restore();
   }
 }
 
-// Controls & Spawning
-function switchPlayer() {
-  currentPlayer = currentPlayer === 1 ? 2 : 1;
-  document.getElementById("player-label").innerText = currentPlayer === 1 ? "P2" : "P1";
-  document.getElementById("gold-display").innerText = gold[currentPlayer];
-  selectedUnits = [];
-  units.forEach(u => u.selected = false);
+// 3:2 Balance & Stationing
+function maintainBalance() {
+  const currentSoldiers = units.length || 1;
+  const targetZombies = Math.ceil(currentSoldiers * 1.5); // 3 Zombies vs 2 Soldiers
+
+  if (zombies.length < targetZombies) {
+    const isForest = Math.random() < 0.65;
+    let sx, sy, terr;
+    if (isForest) {
+      sx = forestZone.x + 100 + Math.random() * 1100;
+      sy = 80 + Math.random() * (WORLD_HEIGHT - 160);
+      terr = 'forest';
+    } else {
+      sx = 350 + Math.random() * 500;
+      sy = 150 + Math.random() * (WORLD_HEIGHT - 300);
+      terr = 'town';
+    }
+    zombies.push(new ZombieThreat(sx, sy, terr));
+  }
 }
 
-function spawnUnit(type) {
-  const cost = type === 'wagon' ? 120 : 50;
-  if (gold[currentPlayer] < cost) return;
-
-  gold[currentPlayer] -= cost;
-  document.getElementById("gold-display").innerText = gold[currentPlayer];
-
-  const origin = currentPlayer === 1 
-    ? (type === 'wagon' ? factoryP1 : baseP1) 
-    : (type === 'wagon' ? factoryP2 : baseP2);
-
-  const u = new Unit(origin.x + origin.w + 10, origin.y + 20 + Math.random() * 20, type, currentPlayer);
-  u.targetX = u.x + 40;
+// Spawning Logic
+function deployUnit(type) {
+  const base = activePlayer === 1 ? bases[0] : bases[1];
+  const isVeh = type === 'vehicle';
+  const u = new BlueSoldier(base.x + base.w + 20, base.y + 30 + Math.random() * 40, activePlayer, isVeh);
+  u.targetX = u.x + 70;
   u.targetY = u.y;
   units.push(u);
 }
 
-// Mouse Controls for RTS Command
+function switchPlayer() {
+  activePlayer = activePlayer === 1 ? 2 : 1;
+  document.getElementById("squad-text").innerText = `SQUAD ${activePlayer} (BLUE)`;
+  document.getElementById("switch-text").innerText = activePlayer === 1 ? "P2" : "P1";
+  selectedUnits = [];
+  units.forEach(u => u.selected = false);
+}
+
+// Window Resize & Canvas Resizing
+function resize() {
+  canvas.width = canvas.parentElement.clientWidth;
+  canvas.height = canvas.parentElement.clientHeight;
+}
+window.addEventListener("resize", resize);
+resize();
+
+// Camera Handling (Arrow keys, WASD & Edge Scrolling)
+window.addEventListener("keydown", (e) => keys[e.key.toLowerCase()] = true);
+window.addEventListener("keyup", (e) => keys[e.key.toLowerCase()] = false);
+
+function updateCamera() {
+  if (keys['arrowleft'] || keys['a']) camera.x -= camera.speed;
+  if (keys['arrowright'] || keys['d']) camera.x += camera.speed;
+  if (keys['arrowup'] || keys['w']) camera.y -= camera.speed;
+  if (keys['arrowdown'] || keys['s']) camera.y += camera.speed;
+
+  // Clamping Camera
+  camera.x = Math.max(0, Math.min(camera.x, WORLD_WIDTH - canvas.width));
+  camera.y = Math.max(0, Math.min(camera.y, WORLD_HEIGHT - canvas.height));
+}
+
+// Mouse RTS Selection & Movement
 canvas.addEventListener("mousedown", (e) => {
   const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
+  const screenX = e.clientX - rect.left;
+  const screenY = e.clientY - rect.top;
+  const worldX = screenX + camera.x;
+  const worldY = screenY + camera.y;
 
-  if (e.button === 0) { // Left click: Select
-    isSelecting = true;
-    selectBox.x1 = mx;
-    selectBox.y1 = my;
-    selectBox.x2 = mx;
-    selectBox.y2 = my;
-  } else if (e.button === 2) { // Right click: Move / Attack Order
+  if (e.button === 0) { // Left-Click Selection
+    isBoxSelecting = true;
+    selectBox.startX = worldX;
+    selectBox.startY = worldY;
+    selectBox.endX = worldX;
+    selectBox.endY = worldY;
+  } else if (e.button === 2) { // Right-Click Move/Guard Order
     selectedUnits.forEach((u, i) => {
-      u.targetX = mx + (i % 3) * 16 - 16;
-      u.targetY = my + Math.floor(i / 3) * 16 - 16;
+      u.targetX = worldX + (i % 4) * 24 - 24;
+      u.targetY = worldY + Math.floor(i / 4) * 24 - 24;
     });
   }
 });
 
 canvas.addEventListener("mousemove", (e) => {
-  if (isSelecting) {
-    const rect = canvas.getBoundingClientRect();
-    selectBox.x2 = e.clientX - rect.left;
-    selectBox.y2 = e.clientY - rect.top;
+  const rect = canvas.getBoundingClientRect();
+  const screenX = e.clientX - rect.left;
+  const screenY = e.clientY - rect.top;
+
+  if (isBoxSelecting) {
+    selectBox.endX = screenX + camera.x;
+    selectBox.endY = screenY + camera.y;
   }
+
+  // Edge Scrolling
+  const margin = 20;
+  if (screenX < margin) camera.x -= camera.speed * 0.8;
+  if (screenX > canvas.width - margin) camera.x += camera.speed * 0.8;
+  if (screenY < margin) camera.y -= camera.speed * 0.8;
+  if (screenY > canvas.height - margin) camera.y += camera.speed * 0.8;
 });
 
 canvas.addEventListener("mouseup", (e) => {
-  if (isSelecting && e.button === 0) {
-    isSelecting = false;
+  if (isBoxSelecting && e.button === 0) {
+    isBoxSelecting = false;
     selectedUnits = [];
-    const minX = Math.min(selectBox.x1, selectBox.x2);
-    const maxX = Math.max(selectBox.x1, selectBox.x2);
-    const minY = Math.min(selectBox.y1, selectBox.y2);
-    const maxY = Math.max(selectBox.y1, selectBox.y2);
+
+    const minX = Math.min(selectBox.startX, selectBox.endX);
+    const maxX = Math.max(selectBox.startX, selectBox.endX);
+    const minY = Math.min(selectBox.startY, selectBox.endY);
+    const maxY = Math.max(selectBox.startY, selectBox.endY);
+
+    const isSingleClick = Math.hypot(selectBox.startX - selectBox.endX, selectBox.startY - selectBox.endY) < 6;
 
     units.forEach(u => {
-      if (u.player === currentPlayer) {
-        // Drag box select or Click select
-        if ((u.x >= minX - 8 && u.x <= maxX + 8 && u.y >= minY - 8 && u.y <= maxY + 8) ||
-            Math.hypot(u.x - selectBox.x1, u.y - selectBox.y1) < 14) {
-          u.selected = true;
-          selectedUnits.push(u);
+      if (u.player === activePlayer) {
+        if (isSingleClick) {
+          if (Math.hypot(u.x - selectBox.startX, u.y - selectBox.startY) < 22) {
+            u.selected = true;
+            selectedUnits.push(u);
+          } else {
+            u.selected = false;
+          }
         } else {
-          u.selected = false;
+          if (u.x >= minX && u.x <= maxX && u.y >= minY && u.y <= maxY) {
+            u.selected = true;
+            selectedUnits.push(u);
+          } else {
+            u.selected = false;
+          }
         }
       }
     });
@@ -346,74 +529,137 @@ canvas.addEventListener("mouseup", (e) => {
 
 canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 
-// Game Loop
-function gameLoop() {
-  // 1. Day / Night Cycle
-  dayTime = (dayTime + 1) % 1600;
-  const isNight = dayTime > 800;
-  document.getElementById("time-display").innerText = isNight ? "NIGHT 🌙 (VAMPIRES ENRAGED)" : "DAY ☀️ (SAFE SUN)";
-  document.getElementById("time-display").style.color = isNight ? "#ff4444" : "#ffd700";
+// Minimap Click Navigation
+miniCanvas.addEventListener("click", (e) => {
+  const rect = miniCanvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
 
-  // Periodic Gold Income
-  if (dayTime % 120 === 0) {
-    gold[1] += 15;
-    gold[2] += 15;
-    document.getElementById("gold-display").innerText = gold[currentPlayer];
-  }
+  const targetWorldX = (mx / miniCanvas.width) * WORLD_WIDTH;
+  const targetWorldY = (my / miniCanvas.height) * WORLD_HEIGHT;
 
-  // 2. Spawn Vampires from Graveyard Hill
-  if (dayTime % (isNight ? 90 : 220) === 0 && vampires.length < 25) {
-    vampires.push(new Vampire(graveyard.x + 20 + Math.random() * 60, graveyard.y + 40 + Math.random() * 40));
-  }
+  camera.x = targetWorldX - canvas.width / 2;
+  camera.y = targetWorldY - canvas.height / 2;
+});
 
-  // 3. Clear Canvas & Draw Dusty Western Terrain
-  ctx.fillStyle = "#87623b"; // Dusty Sand Dirt
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+// Deploy Initial Forces
+let activePlayer = 1;
+deployUnit('soldier');
+deployUnit('soldier');
+activePlayer = 2;
+deployUnit('soldier');
+deployUnit('soldier');
+activePlayer = 1;
 
-  // Draw Woods/Forest (တောအုပ်)
-  trees.forEach(t => {
-    ctx.fillStyle = "rgba(40, 20, 10, 0.3)";
-    ctx.beginPath();
-    ctx.arc(t.x + 3, t.y + 3, t.r, 0, Math.PI * 2);
-    ctx.fill();
+// Main Render Engine Loop
+function engineLoop() {
+  updateCamera();
+  maintainBalance();
 
-    ctx.fillStyle = "#1e3f20"; // Dark retro green
-    ctx.beginPath();
-    ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#2d5a2f";
-    ctx.beginPath();
-    ctx.arc(t.x - 2, t.y - 2, t.r * 0.6, 0, Math.PI * 2);
-    ctx.fill();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Apply Camera Translation
+  ctx.save();
+  ctx.translate(-camera.x, -camera.y);
+
+  // 1. Draw Realistic Ground
+  // Town Dirt Ground
+  ctx.fillStyle = "#735338";
+  ctx.fillRect(townZone.x, townZone.y, townZone.w, townZone.h);
+
+  // Dense Forest Ground
+  ctx.fillStyle = "#1b2419";
+  ctx.fillRect(forestZone.x, forestZone.y, forestZone.w, forestZone.h);
+
+  // Ground Textures / Pathways
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+  ctx.lineWidth = 14;
+  ctx.beginPath();
+  ctx.moveTo(200, 260);
+  ctx.lineTo(650, 450);
+  ctx.lineTo(1100, 900);
+  ctx.lineTo(2100, 850);
+  ctx.stroke();
+
+  // Zone Boundary
+  ctx.strokeStyle = "rgba(0,0,0,0.45)";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(forestZone.x, 0);
+  ctx.lineTo(forestZone.x, WORLD_HEIGHT);
+  ctx.stroke();
+
+  // 2. Draw Bases & Buildings
+  bases.forEach(b => {
+    // Drop Shadow
+    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    ctx.fillRect(b.x + 8, b.y + 8, b.w, b.h);
+
+    ctx.fillStyle = "#2d1f14";
+    ctx.fillRect(b.x - 3, b.y - 3, b.w + 6, b.h + 6);
+    ctx.fillStyle = b.p ? (b.p === 1 ? "#1e3a8a" : "#0369a1") : "#4a3525";
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+
+    // Roof Lines
+    ctx.strokeStyle = "rgba(255,255,255,0.1)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(b.x + 6, b.y + 6, b.w - 12, b.h - 12);
+
+    ctx.fillStyle = "#f8fafc";
+    ctx.font = "bold 13px 'Segoe UI', Tahoma";
+    ctx.fillText(b.name, b.x + 12, b.y + 26);
   });
 
-  // Draw Western Buildings
-  function drawBuilding(b, color) {
-    ctx.fillStyle = "#3e2723"; // Wood outline
-    ctx.fillRect(b.x - 2, b.y - 2, b.w + 4, b.h + 4);
-    ctx.fillStyle = color;
-    ctx.fillRect(b.x, b.y, b.w, b.h);
-    ctx.fillStyle = "#f5deb3";
-    ctx.font = "10px monospace";
-    ctx.fillText(b.name, b.x + 5, b.y + 16);
-  }
-  drawBuilding(baseP1, "#4a6984");
-  drawBuilding(factoryP1, "#34495e");
-  drawBuilding(baseP2, "#b9770e");
-  drawBuilding(factoryP2, "#7e5109");
+  // 3. Draw Cursed Graveyard Hill
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.fillRect(graveyardHill.x + 10, graveyardHill.y + 10, graveyardHill.w, graveyardHill.h);
+  ctx.fillStyle = "#0f172a";
+  ctx.fillRect(graveyardHill.x, graveyardHill.y, graveyardHill.w, graveyardHill.h);
+  ctx.fillStyle = "#ef4444";
+  ctx.font = "bold 14px 'Segoe UI'";
+  ctx.fillText("CURSED HILL CEMETERY", graveyardHill.x + 16, graveyardHill.y + 30);
 
-  // Draw Graveyard Hill
-  ctx.fillStyle = "#2b2b2b";
-  ctx.fillRect(graveyard.x, graveyard.y, graveyard.w, graveyard.h);
-  ctx.fillStyle = "#c0392b";
-  ctx.fillText("☠️ HILL GRAVEYARD", graveyard.x + 8, graveyard.y + 20);
   // Tombstones
-  ctx.fillStyle = "#7f8c8d";
-  ctx.fillRect(graveyard.x + 20, graveyard.y + 40, 8, 12);
-  ctx.fillRect(graveyard.x + 60, graveyard.y + 70, 8, 12);
-  ctx.fillRect(graveyard.x + 90, graveyard.y + 35, 8, 12);
+  ctx.fillStyle = "#64748b";
+  for (let i = 0; i < 18; i++) {
+    const tx = graveyardHill.x + 30 + (i % 5) * 65;
+    const ty = graveyardHill.y + 60 + Math.floor(i / 5) * 85;
+    ctx.fillRect(tx, ty, 14, 20);
+  }
 
-  // 4. Update & Draw Units
+  // 4. Draw Scenery (Rocks & Realistic Trees)
+  scenery.forEach(s => {
+    if (s.type === 'rock') {
+      ctx.fillStyle = "#475569";
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.radius * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Tree Shadow
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.beginPath();
+      ctx.ellipse(s.x + 8, s.y + 8, s.radius, s.radius * 0.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Multi-layer Leaves
+      ctx.fillStyle = "#0d2011";
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#16381c";
+      ctx.beginPath();
+      ctx.arc(s.x - 3, s.y - 3, s.radius * 0.75, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#22542a";
+      ctx.beginPath();
+      ctx.arc(s.x - 5, s.y - 5, s.radius * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  // 5. Update & Draw Units
   for (let i = units.length - 1; i >= 0; i--) {
     const u = units[i];
     u.update();
@@ -421,19 +667,19 @@ function gameLoop() {
     if (u.hp <= 0) units.splice(i, 1);
   }
 
-  // 5. Update & Draw Vampires
-  for (let i = vampires.length - 1; i >= 0; i--) {
-    const v = vampires[i];
-    v.update(isNight);
-    v.draw();
-    if (v.hp <= 0) vampires.splice(i, 1);
+  // 6. Update & Draw Zombies
+  for (let i = zombies.length - 1; i >= 0; i--) {
+    const z = zombies[i];
+    z.update();
+    z.draw();
+    if (z.hp <= 0) zombies.splice(i, 1);
   }
 
-  // 6. Draw Bullets & Explosions
+  // 7. Bullets Tracer
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
-    ctx.strokeStyle = "#ffeb3b";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#fde047";
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(b.x, b.y);
     ctx.lineTo(b.tx, b.ty);
@@ -441,32 +687,72 @@ function gameLoop() {
 
     b.life--;
     if (b.life === 1) {
-      // Deal damage
-      vampires.forEach(v => {
-        if (Math.hypot(v.x - b.tx, v.y - b.ty) < 16) v.hp -= b.dmg;
+      zombies.forEach(z => {
+        if (Math.hypot(z.x - b.tx, z.y - b.ty) < 20) z.hp -= b.dmg;
       });
     }
     if (b.life <= 0) bullets.splice(i, 1);
   }
 
-  // 7. Drag Selection Rectangle
-  if (isSelecting) {
-    ctx.strokeStyle = "#00ffcc";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(selectBox.x1, selectBox.y1, selectBox.x2 - selectBox.x1, selectBox.y2 - selectBox.y1);
+  // 8. Box Drag Indicator
+  if (isBoxSelecting) {
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1.2;
+    ctx.fillStyle = "rgba(56, 189, 248, 0.08)";
+    const bx = Math.min(selectBox.startX, selectBox.endX);
+    const by = Math.min(selectBox.startY, selectBox.endY);
+    const bw = Math.abs(selectBox.startX - selectBox.endX);
+    const bh = Math.abs(selectBox.startY - selectBox.endY);
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.strokeRect(bx, by, bw, bh);
   }
 
-  // 8. Day/Night Tint Overlay
-  if (isNight) {
-    ctx.fillStyle = "rgba(10, 15, 45, 0.45)"; // Dark Blue Night Filter
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
+  ctx.restore();
 
-  requestAnimationFrame(gameLoop);
+  // 9. Render Minimap HUD
+  renderMinimap();
+
+  requestAnimationFrame(engineLoop);
 }
 
-// Launch Game
-gameLoop();
+function renderMinimap() {
+  const mw = miniCanvas.width;
+  const mh = miniCanvas.height;
+  const scaleX = mw / WORLD_WIDTH;
+  const scaleY = mh / WORLD_HEIGHT;
+
+  miniCtx.fillStyle = "#0f172a";
+  miniCtx.fillRect(0, 0, mw, mh);
+
+  // Town & Forest zones
+  miniCtx.fillStyle = "#735338";
+  miniCtx.fillRect(0, 0, townZone.w * scaleX, mh);
+  miniCtx.fillStyle = "#1b2419";
+  miniCtx.fillRect(townZone.w * scaleX, 0, forestZone.w * scaleX, mh);
+
+  // Cemetery
+  miniCtx.fillStyle = "#450a0a";
+  miniCtx.fillRect(graveyardHill.x * scaleX, graveyardHill.y * scaleY, graveyardHill.w * scaleX, graveyardHill.h * scaleY);
+
+  // Units (Blue Dots)
+  miniCtx.fillStyle = "#38bdf8";
+  units.forEach(u => {
+    miniCtx.fillRect(u.x * scaleX - 1.5, u.y * scaleY - 1.5, 3, 3);
+  });
+
+  // Zombies (Red Dots)
+  miniCtx.fillStyle = "#ef4444";
+  zombies.forEach(z => {
+    miniCtx.fillRect(z.x * scaleX - 1, z.y * scaleY - 1, 2, 2);
+  });
+
+  // Camera Viewport Box on Minimap
+  miniCtx.strokeStyle = "#ffffff";
+  miniCtx.lineWidth = 1.2;
+  miniCtx.strokeRect(camera.x * scaleX, camera.y * scaleY, canvas.width * scaleX, canvas.height * scaleY);
+}
+
+engineLoop();
 </script>
 
 </body>
