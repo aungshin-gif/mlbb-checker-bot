@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Outpost 1998: Hardcore Survival RTS</title>
+  <title>Tactical Outpost: Survival RTS</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
     body {
@@ -17,36 +17,37 @@
       touch-action: none;
     }
     #top-hud {
-      height: 48px;
-      background: rgba(10, 14, 23, 0.95);
+      height: 50px;
+      background: rgba(10, 14, 23, 0.96);
       border-bottom: 2px solid #1e293b;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 16px;
+      padding: 0 12px;
       z-index: 100;
     }
     .hud-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       font-size: 13px;
       font-weight: 700;
     }
+    .btn-bar { display: flex; gap: 6px; }
     .hud-btn {
       background: #1e293b;
       border: 1px solid #334155;
       color: #f8fafc;
       padding: 6px 12px;
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s;
     }
     .hud-btn:active { transform: scale(0.95); }
-    .hud-btn.active { background: #0284c7; border-color: #38bdf8; }
-    .hud-btn.overview { background: #991b1b; border-color: #ef4444; }
+    .hud-btn.team { background: #0284c7; border-color: #38bdf8; font-weight: bold; }
+    .hud-btn.active { background: #2563eb; border-color: #60a5fa; }
     #canvas-wrap {
       position: relative;
       flex: 1;
@@ -60,28 +61,27 @@
     }
     #threat-hud {
       position: absolute;
-      top: 14px;
+      top: 10px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(15, 23, 42, 0.9);
       border: 1px solid #ef4444;
       color: #ef4444;
-      padding: 6px 16px;
+      padding: 4px 14px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.05em;
       pointer-events: none;
       z-index: 90;
       box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
     }
     #mobile-hint {
       position: absolute;
-      bottom: 16px;
-      left: 16px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 8px 12px;
+      bottom: 14px;
+      left: 14px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 6px 12px;
       border-radius: 8px;
       font-size: 11px;
       color: #94a3b8;
@@ -94,25 +94,23 @@
 
 <div id="top-hud">
   <div class="hud-left">
-    <span style="color: #38bdf8;">MASSIVE BATTLEFIELD</span>
+    <span id="player-indicator" style="color: #38bdf8;">SQUAD 1 (BLUE)</span>
     <span style="color:#475569;">|</span>
-    <span id="player-indicator" style="color: #60a5fa;">SQUAD 1 (BLUE)</span>
-    <span style="color:#475569;">|</span>
-    <span id="casualty-count" style="color: #ef4444;">Casualties: 0</span>
+    <span id="casualty-count" style="color: #ef4444;">Dead: 0</span>
   </div>
-  <div style="display:flex; gap:8px;">
-    <button class="hud-btn overview" id="btnOverview" onclick="toggleOverview()">🌍 FULL MAP OVERVIEW</button>
+  <div class="btn-bar">
+    <button class="hud-btn team" onclick="selectAllTeam()">🎖️ SELECT ALL TEAM</button>
     <button class="hud-btn active" id="btnSwitch" onclick="switchPlayer()">🕹️ SWITCH SQUAD</button>
-    <button class="hud-btn" onclick="spawnOperator()">🎖️ DEPLOY SQUAD (50G)</button>
+    <button class="hud-btn" onclick="spawnOperator()">+ RECRUIT</button>
   </div>
 </div>
 
-<div id="threat-hud">⚠️ DEFCON 1: APOCALYPTIC HORDE DETECTED</div>
+<div id="threat-hud">⚠️ DEFCON 1: HORDE INVASION ACTIVE</div>
 
 <div id="canvas-wrap">
   <canvas id="gameCanvas"></canvas>
   <div id="mobile-hint">
-    👉 ထိတွေ့ထိန်းချုပ်မှု- တပ်သားကို ထိပြီးရွေးပါ / မြေပြင်ကိုထိပြီး နေရာရွှေ့ပါ / Overview နှိပ်၍ မြေပုံအစအဆုံး ကြည့်ပါ
+    👉 <strong>မြေပုံရွှေ့ရန်:</strong> Screen ပေါ် လက်ဖြင့် ဖိဆွဲပါ (Drag Map) | <strong>တပ်ရွှေ့ရန်:</strong> "SELECT ALL TEAM" နှိပ်ပြီး သွားလိုရာမြေပြင်ကို ထိပါ
   </div>
 </div>
 
@@ -120,12 +118,71 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Ultra-Massive World Bounds
-const WORLD_W = 4500;
-const WORLD_H = 3000;
+// Sound Synthesizer Engine (Web Audio API)
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
 
-let camera = { x: 200, y: 400 };
-let isOverviewMode = false;
+function playGunfire() {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(300, now);
+  osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
+
+  gain.gain.setValueAtTime(0.3, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.08);
+}
+
+function playZombieBite() {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(120, now);
+  osc.frequency.linearRampToValueAtTime(60, now + 0.2);
+
+  gain.gain.setValueAtTime(0.4, now);
+  gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.2);
+}
+
+function playRadioBeep() {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(880, now);
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.1);
+}
+
+// World Bounds
+const WORLD_W = 4000;
+const WORLD_H = 2600;
+let camera = { x: 100, y: 250 };
 
 let currentPlayer = 1;
 let units = [];
@@ -135,28 +192,27 @@ let bloodSplats = [];
 let scenery = [];
 let casualties = 0;
 
-// Territory Bounds
-const townZone = { x: 0, y: 0, w: 1800, h: WORLD_H };
-const forestZone = { x: 1800, y: 0, w: 2700, h: WORLD_H };
-const hiveHill = { x: 3700, y: 1200, w: 600, h: 700 };
+// Zones
+const townZone = { x: 0, y: 0, w: 1600, h: WORLD_H };
+const forestZone = { x: 1600, y: 0, w: 2400, h: WORLD_H };
+const hiveHill = { x: 3300, y: 1000, w: 600, h: 700 };
 
-// Outpost Bases
 const bases = [
-  { x: 180, y: 350, w: 220, h: 160, name: "Alpha Garrison (P1)", p: 1 },
-  { x: 180, y: 2200, w: 220, h: 160, name: "Bravo Garrison (P2)", p: 2 }
+  { x: 150, y: 300, w: 200, h: 140, name: "Alpha Garrison (P1)", p: 1 },
+  { x: 150, y: 1900, w: 200, h: 140, name: "Bravo Garrison (P2)", p: 2 }
 ];
 
-// Generate 400+ Trees across the vast wilderness
-for (let i = 0; i < 420; i++) {
+// Generate Trees
+for (let i = 0; i < 350; i++) {
   scenery.push({
-    x: forestZone.x + 100 + Math.random() * (forestZone.w - 200),
+    x: forestZone.x + 80 + Math.random() * (forestZone.w - 160),
     y: 80 + Math.random() * (WORLD_H - 160),
-    size: 36 + Math.random() * 26
+    size: 36 + Math.random() * 24
   });
 }
 
 // -------------------------------------------------------------
-// REALISTIC OPERATOR WITH SKELETAL LOCOMOTION (ခြေလှမ်းဖြင့်ပြေးခြင်း)
+// OPERATOR (Running Footsteps & Fire)
 // -------------------------------------------------------------
 class TacticalOperator {
   constructor(x, y, player) {
@@ -168,13 +224,13 @@ class TacticalOperator {
     this.selected = false;
     this.hp = 100;
     this.maxHp = 100;
-    this.speed = 2.6;
+    this.speed = 2.8;
     this.facing = 0;
     this.walkAnim = 0;
     this.isMoving = false;
     this.shootCooldown = 0;
     this.muzzleTime = 0;
-    this.range = 210;
+    this.range = 220;
   }
 
   update() {
@@ -182,17 +238,16 @@ class TacticalOperator {
     const dy = this.targetY - this.y;
     const dist = Math.hypot(dx, dy);
 
-    if (dist > 6) {
+    if (dist > 8) {
       this.isMoving = true;
       this.facing = Math.atan2(dy, dx);
       this.x += (dx / dist) * this.speed;
       this.y += (dy / dist) * this.speed;
-      this.walkAnim += 0.35; // ခြေလှမ်း Animation အရှိန်
+      this.walkAnim += 0.35;
     } else {
       this.isMoving = false;
     }
 
-    // Target Selection & Shoot
     if (this.shootCooldown > 0) this.shootCooldown--;
     if (this.shootCooldown === 0) {
       let target = null;
@@ -210,12 +265,13 @@ class TacticalOperator {
         this.facing = Math.atan2(target.y - this.y, target.x - this.x);
         this.muzzleTime = 2;
         this.shootCooldown = 14;
+        playGunfire();
 
         bullets.push({
           x: this.x + Math.cos(this.facing) * 24,
           y: this.y + Math.sin(this.facing) * 24,
           tx: target.x, ty: target.y,
-          dmg: 22, life: 6
+          dmg: 24, life: 6
         });
       }
     }
@@ -224,8 +280,8 @@ class TacticalOperator {
   draw() {
     const inForest = this.x > forestZone.x;
 
-    // Volumetric Flashlight Beam
-    if (inForest && !isOverviewMode) {
+    // Flashlight in forest
+    if (inForest) {
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(this.facing);
@@ -246,46 +302,43 @@ class TacticalOperator {
 
     ctx.save();
 
-    // Soft Directional Shadow
+    // Shadow
     ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
     ctx.beginPath();
     ctx.ellipse(this.x + 4, this.y + 6, 12, 6, this.facing, 0, Math.PI * 2);
     ctx.fill();
 
-    // Tactical Selection Ring
+    // Halo indicator
     if (this.selected) {
       ctx.strokeStyle = "#38bdf8";
-      ctx.lineWidth = 2;
-      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.arc(this.x, this.y, 22, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.setLineDash([]);
     }
 
     ctx.translate(this.x, this.y);
     ctx.rotate(this.facing);
 
-    // Realistic Running Legs Mechanics (ခြေထောက် အလှည့်ကျ လှမ်းခြင်း)
+    // Running Legs
     const legSwing = this.isMoving ? Math.sin(this.walkAnim) * 7 : 0;
-    ctx.fillStyle = "#0f172a"; // Combat Boots
+    ctx.fillStyle = "#0f172a";
     ctx.fillRect(-12 + legSwing, -8, 7, 4);
     ctx.fillRect(-12 - legSwing, 4, 7, 4);
 
-    // Tactical Blue Uniform & Vest
+    // Blue Tactical Uniform
     ctx.fillStyle = this.player === 1 ? "#1e3a8a" : "#0284c7";
     ctx.fillRect(-10, -9, 17, 18);
 
-    // Backpack & Tactical Harness
+    // Backpack
     ctx.fillStyle = "#020617";
     ctx.fillRect(-13, -7, 4, 14);
 
-    // Shoulders with Sway
-    const bodySway = this.isMoving ? Math.sin(this.walkAnim * 0.5) * 1.5 : 0;
+    // Shoulders
     ctx.fillStyle = "#1e40af";
     ctx.beginPath();
-    ctx.arc(-2, -9 + bodySway, 4, 0, Math.PI * 2);
-    ctx.arc(-2, 9 + bodySway, 4, 0, Math.PI * 2);
+    ctx.arc(-2, -9, 4, 0, Math.PI * 2);
+    ctx.arc(-2, 9, 4, 0, Math.PI * 2);
     ctx.fill();
 
     // Arms Holding Rifle
@@ -293,13 +346,13 @@ class TacticalOperator {
     ctx.fillRect(0, -7, 12, 4);
     ctx.fillRect(3, 4, 9, 3.5);
 
-    // M4 Carbine Assault Rifle
+    // M4 Carbine
     ctx.fillStyle = "#111827";
     ctx.fillRect(5, 1, 20, 3.5);
     ctx.fillStyle = "#374151";
     ctx.fillRect(9, 0, 7, 5);
 
-    // Kevlar Helmet & Goggles
+    // Helmet
     ctx.fillStyle = "#020617";
     ctx.beginPath();
     ctx.arc(-1, 0, 6.5, 0, Math.PI * 2);
@@ -311,7 +364,7 @@ class TacticalOperator {
     if (this.muzzleTime > 0) {
       ctx.fillStyle = "#fef08a";
       ctx.beginPath();
-      ctx.arc(28, 3, 8 + Math.random() * 4, 0, Math.PI * 2);
+      ctx.arc(28, 3, 9, 0, Math.PI * 2);
       ctx.fill();
       this.muzzleTime--;
     }
@@ -329,13 +382,13 @@ class TacticalOperator {
 }
 
 // -------------------------------------------------------------
-// DEADLY MUTATED ZOMBIE CLASS (အလောင်းကောင်ပီပီ ယိုင်ထိုးပြေးခြင်း)
+// ZOMBIES (Lurching & Bite Attack)
 // -------------------------------------------------------------
 class BrutalZombie {
   constructor(x, y, type = 'normal') {
     this.x = x;
     this.y = y;
-    this.type = type; // 'normal', 'sprinter', 'tank'
+    this.type = type;
     this.hp = type === 'tank' ? 320 : (type === 'sprinter' ? 60 : 100);
     this.maxHp = this.hp;
     this.speed = type === 'tank' ? 1.0 : (type === 'sprinter' ? 2.8 : 1.5);
@@ -347,7 +400,7 @@ class BrutalZombie {
 
   update() {
     let closest = null;
-    let minD = 350;
+    let minD = 380;
 
     units.forEach(u => {
       const d = Math.hypot(u.x - this.x, u.y - this.y);
@@ -366,23 +419,19 @@ class BrutalZombie {
       this.limpCycle += 0.25;
 
       if (dist > 14) {
-        // Limping / Lurching Motion (ယိုင်ထိုးပြေးခြင်း)
         const lurch = Math.sin(this.limpCycle) * 0.4;
         this.x += (dx / dist) * (this.speed + lurch);
         this.y += (dy / dist) * (this.speed + lurch);
       } else {
-        // Brutal Bite & Overwhelm
         if (this.biteTimer === 0) {
           closest.hp -= this.damage;
           this.biteTimer = 20;
-
-          // Splatter Blood
+          playZombieBite();
           bloodSplats.push(new BloodSplat(closest.x, closest.y));
 
-          // Infection Kill: စစ်သားသေသွားပါက ဖုတ်ကောင်အဖြစ် ပြောင်းလဲထလာခြင်း
           if (closest.hp <= 0) {
             casualties++;
-            document.getElementById("casualty-count").innerText = `Casualties: ${casualties}`;
+            document.getElementById("casualty-count").innerText = `Dead: ${casualties}`;
             setTimeout(() => {
               zombies.push(new BrutalZombie(closest.x, closest.y, 'sprinter'));
             }, 800);
@@ -403,27 +452,22 @@ class BrutalZombie {
     ctx.translate(this.x, this.y);
     ctx.rotate(this.facing);
 
-    // Tank scale
     const scale = this.type === 'tank' ? 1.5 : 1.0;
     ctx.scale(scale, scale);
 
-    // Decayed Flesh & Ragged Body
     ctx.fillStyle = this.type === 'tank' ? "#1c1917" : "#334155";
     ctx.fillRect(-8, -8, 14, 16);
 
-    // Extended Reaching Arms (အရှေ့သို့ ဆန့်တန်းယမ်းခါနေသော လက်များ)
     const armWiggle = Math.sin(this.limpCycle) * 4;
     ctx.fillStyle = "#475569";
     ctx.fillRect(4, -8 + armWiggle, 14, 3.5);
     ctx.fillRect(4, 5 - armWiggle, 14, 3.5);
 
-    // Decayed Head with Blood
     ctx.fillStyle = "#64748b";
     ctx.beginPath();
     ctx.arc(0, 0, 6, 0, Math.PI * 2);
     ctx.fill();
 
-    // Glowing Crimson Eyes
     ctx.fillStyle = "#ef4444";
     ctx.fillRect(3, -3, 2, 2);
     ctx.fillRect(3, 1, 2, 2);
@@ -432,7 +476,6 @@ class BrutalZombie {
   }
 }
 
-// Blood Spatter Class (သွေးသံရဲရဲ ကွက်ကျန်ခဲ့ခြင်း)
 class BloodSplat {
   constructor(x, y) {
     this.x = x + (Math.random() * 16 - 8);
@@ -447,10 +490,117 @@ class BloodSplat {
   }
 }
 
-// Hardcore Spawner
+// -------------------------------------------------------------
+// MAP DRAGGING & TOUCH NAVIGATION (Screen ထိဆွဲပြီး မြေပုံရွှေ့ခြင်း)
+// -------------------------------------------------------------
+let isPanningMap = false;
+let startPointer = { x: 0, y: 0 };
+let startCam = { x: 0, y: 0 };
+let touchStartTime = 0;
+
+function pointerDown(clientX, clientY) {
+  initAudio();
+  isPanningMap = true;
+  startPointer.x = clientX;
+  startPointer.y = clientY;
+  startCam.x = camera.x;
+  startCam.y = camera.y;
+  touchStartTime = Date.now();
+}
+
+function pointerMove(clientX, clientY) {
+  if (isPanningMap) {
+    const dx = clientX - startPointer.x;
+    const dy = clientY - startPointer.y;
+    // Screen ပေါ် ဆွဲလိုက်သည့်အတိုင်း မြေပုံ ရွှေ့လျားခြင်း
+    camera.x = startCam.x - dx;
+    camera.y = startCam.y - dy;
+    camera.x = Math.max(0, Math.min(camera.x, WORLD_W - canvas.width));
+    camera.y = Math.max(0, Math.min(camera.y, WORLD_H - canvas.height));
+  }
+}
+
+function pointerUp(clientX, clientY) {
+  if (!isPanningMap) return;
+  isPanningMap = false;
+
+  const distMoved = Math.hypot(clientX - startPointer.x, clientY - startPointer.y);
+  const touchDuration = Date.now() - touchStartTime;
+
+  // အကယ်၍ မဆွဲဘဲ မြေပြင်ကို တစ်ချက်ထိရုံသာ ထိလိုက်ပါက (Tap Command)
+  if (distMoved < 12 && touchDuration < 300) {
+    const worldX = clientX + camera.x;
+    const worldY = clientY + camera.y;
+
+    const selected = units.filter(u => u.selected && u.player === currentPlayer);
+    if (selected.length > 0) {
+      playRadioBeep();
+      selected.forEach((u, i) => {
+        u.targetX = worldX + (i % 4) * 32 - 48;
+        u.targetY = worldY + Math.floor(i / 4) * 32 - 48;
+      });
+    }
+  }
+}
+
+// Touch Handlers
+canvas.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  const t = e.touches[0];
+  pointerDown(t.clientX, t.clientY);
+}, { passive: false });
+
+canvas.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+  const t = e.touches[0];
+  pointerMove(t.clientX, t.clientY);
+}, { passive: false });
+
+canvas.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  pointerUp(t.clientX, t.clientY);
+}, { passive: false });
+
+// Mouse Handlers
+canvas.addEventListener("mousedown", (e) => pointerDown(e.clientX, e.clientY));
+canvas.addEventListener("mousemove", (e) => pointerMove(e.clientX, e.clientY));
+canvas.addEventListener("mouseup", (e) => pointerUp(e.clientX, e.clientY));
+
+// -------------------------------------------------------------
+// TEAM COMMANDS & BUTTONS
+// -------------------------------------------------------------
+function selectAllTeam() {
+  initAudio();
+  playRadioBeep();
+  units.forEach(u => {
+    u.selected = (u.player === currentPlayer);
+  });
+}
+
+function switchPlayer() {
+  initAudio();
+  playRadioBeep();
+  currentPlayer = currentPlayer === 1 ? 2 : 1;
+  document.getElementById("player-indicator").innerText = `SQUAD ${currentPlayer} (BLUE)`;
+  document.getElementById("btnSwitch").innerText = `🕹️ SWITCH TO P${currentPlayer === 1 ? 2 : 1}`;
+  selectAllTeam();
+}
+
+function spawnOperator() {
+  initAudio();
+  playRadioBeep();
+  const base = currentPlayer === 1 ? bases[0] : bases[1];
+  const u = new TacticalOperator(base.x + base.w + 20, base.y + 30 + Math.random() * 50, currentPlayer);
+  u.targetX = u.x + 80;
+  u.targetY = u.y;
+  u.selected = true;
+  units.push(u);
+}
+
 function maintainHorde() {
   const currentUnits = units.length || 1;
-  const targetZombies = Math.max(12, Math.ceil(currentUnits * 2.2)); // အင်အား ၂ ဆကျော် ပိုများစေခြင်း
+  const targetZombies = Math.max(14, Math.ceil(currentUnits * 2.2));
 
   if (zombies.length < targetZombies) {
     const isForest = Math.random() < 0.75;
@@ -459,7 +609,7 @@ function maintainHorde() {
       sx = forestZone.x + 100 + Math.random() * (forestZone.w - 300);
       sy = 100 + Math.random() * (WORLD_H - 200);
     } else {
-      sx = 600 + Math.random() * 800;
+      sx = 500 + Math.random() * 800;
       sy = 200 + Math.random() * (WORLD_H - 400);
     }
 
@@ -469,112 +619,6 @@ function maintainHorde() {
   }
 }
 
-function spawnOperator() {
-  const base = currentPlayer === 1 ? bases[0] : bases[1];
-  const u = new TacticalOperator(base.x + base.w + 20, base.y + 30 + Math.random() * 50, currentPlayer);
-  u.targetX = u.x + 80;
-  u.targetY = u.y;
-  units.push(u);
-}
-
-function switchPlayer() {
-  currentPlayer = currentPlayer === 1 ? 2 : 1;
-  document.getElementById("player-indicator").innerText = `SQUAD ${currentPlayer} (BLUE)`;
-  document.getElementById("btnSwitch").innerText = `🕹️ SWITCH TO P${currentPlayer === 1 ? 2 : 1}`;
-  units.forEach(u => u.selected = false);
-}
-
-// Toggle Overview Zoom System (မြေပုံအစအဆုံး ကြည့်ရှုခြင်း)
-function toggleOverview() {
-  isOverviewMode = !isOverviewMode;
-  document.getElementById("btnOverview").innerText = isOverviewMode ? "🔍 ZOOM IN (PLAY)" : "🌍 FULL MAP OVERVIEW";
-  document.getElementById("btnOverview").style.background = isOverviewMode ? "#16a34a" : "#991b1b";
-}
-
-// Touch / Tap Controls
-canvas.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  const rect = canvas.getBoundingClientRect();
-  const touch = e.touches[0];
-  const screenX = touch.clientX - rect.left;
-  const screenY = touch.clientY - rect.top;
-
-  let worldX, worldY;
-  if (isOverviewMode) {
-    const scale = Math.min(canvas.width / WORLD_W, canvas.height / WORLD_H);
-    worldX = screenX / scale;
-    worldY = screenY / scale;
-    // Tap on map during overview zooms in to that location
-    camera.x = worldX - canvas.width / 2;
-    camera.y = worldY - canvas.height / 2;
-    toggleOverview();
-    return;
-  } else {
-    worldX = screenX + camera.x;
-    worldY = screenY + camera.y;
-  }
-
-  // Check unit tap
-  let tapped = null;
-  units.forEach(u => {
-    if (u.player === currentPlayer && Math.hypot(u.x - worldX, u.y - worldY) < 32) {
-      tapped = u;
-    }
-  });
-
-  if (tapped) {
-    units.forEach(u => u.selected = (u === tapped));
-  } else {
-    const selected = units.filter(u => u.selected);
-    if (selected.length > 0) {
-      selected.forEach((u, i) => {
-        u.targetX = worldX + (i % 3) * 30 - 30;
-        u.targetY = worldY + Math.floor(i / 3) * 30 - 30;
-      });
-    }
-  }
-}, { passive: false });
-
-// Mouse Controls
-canvas.addEventListener("mousedown", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const screenX = e.clientX - rect.left;
-  const screenY = e.clientY - rect.top;
-
-  let worldX, worldY;
-  if (isOverviewMode) {
-    const scale = Math.min(canvas.width / WORLD_W, canvas.height / WORLD_H);
-    worldX = screenX / scale;
-    worldY = screenY / scale;
-    camera.x = worldX - canvas.width / 2;
-    camera.y = worldY - canvas.height / 2;
-    toggleOverview();
-    return;
-  } else {
-    worldX = screenX + camera.x;
-    worldY = screenY + camera.y;
-  }
-
-  if (e.button === 0) {
-    let tapped = null;
-    units.forEach(u => {
-      if (u.player === currentPlayer && Math.hypot(u.x - worldX, u.y - worldY) < 32) tapped = u;
-    });
-
-    if (tapped) {
-      units.forEach(u => u.selected = (u === tapped));
-    } else {
-      const selected = units.filter(u => u.selected);
-      if (selected.length > 0) {
-        selected.forEach((u, i) => {
-          u.targetX = worldX + (i % 3) * 30 - 30;
-          u.targetY = worldY + Math.floor(i / 3) * 30 - 30;
-        });
-      }
-    }
-  }
-});
-
 function resize() {
   canvas.width = canvas.parentElement.clientWidth;
   canvas.height = canvas.parentElement.clientHeight;
@@ -583,7 +627,8 @@ window.addEventListener("resize", resize);
 resize();
 
 // Deploy Initial Squad
-for (let i = 0; i < 3; i++) spawnOperator();
+for (let i = 0; i < 4; i++) spawnOperator();
+selectAllTeam();
 
 // -------------------------------------------------------------
 // MAIN RENDER LOOP
@@ -591,47 +636,28 @@ for (let i = 0; i < 3; i++) spawnOperator();
 function renderLoop() {
   maintainHorde();
 
-  // Smooth Camera Centering
-  if (!isOverviewMode) {
-    const selected = units.filter(u => u.selected);
-    if (selected.length > 0) {
-      const leader = selected[0];
-      camera.x += (leader.x - canvas.width / 2 - camera.x) * 0.06;
-      camera.y += (leader.y - canvas.height / 2 - camera.y) * 0.06;
-    }
-    camera.x = Math.max(0, Math.min(camera.x, WORLD_W - canvas.width));
-    camera.y = Math.max(0, Math.min(camera.y, WORLD_H - canvas.height));
-  }
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
+  ctx.translate(-camera.x, -camera.y);
 
-  if (isOverviewMode) {
-    // Full Map Overview Zoom
-    const scale = Math.min(canvas.width / WORLD_W, canvas.height / WORLD_H);
-    ctx.scale(scale, scale);
-  } else {
-    ctx.translate(-camera.x, -camera.y);
-  }
-
-  // 1. Terrain Rendering (Dust Dirt vs Forest of Shadows)
+  // Terrain
   ctx.fillStyle = "#634730";
   ctx.fillRect(townZone.x, townZone.y, townZone.w, townZone.h);
 
   ctx.fillStyle = "#121a14";
   ctx.fillRect(forestZone.x, forestZone.y, forestZone.w, forestZone.h);
 
-  // Dirt Roads
+  // Roads
   ctx.strokeStyle = "rgba(45, 30, 15, 0.4)";
   ctx.lineWidth = 50;
   ctx.beginPath();
-  ctx.moveTo(200, 400);
-  ctx.lineTo(1200, 800);
-  ctx.lineTo(2400, 1400);
-  ctx.lineTo(3700, 1500);
+  ctx.moveTo(200, 350);
+  ctx.lineTo(1200, 750);
+  ctx.lineTo(2400, 1300);
+  ctx.lineTo(3300, 1350);
   ctx.stroke();
 
-  // 2. Bases
+  // Bases
   bases.forEach(b => {
     ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
     ctx.fillRect(b.x + 14, b.y + 14, b.w, b.h);
@@ -645,17 +671,17 @@ function renderLoop() {
     ctx.fillText(b.name, b.x + 16, b.y + 50);
   });
 
-  // 3. Hive Hill Graveyard
+  // Hive Hill
   ctx.fillStyle = "#020617";
   ctx.fillRect(hiveHill.x, hiveHill.y, hiveHill.w, hiveHill.h);
   ctx.fillStyle = "#ef4444";
   ctx.font = "bold 16px sans-serif";
   ctx.fillText("☠️ THE ABYSSAL HIVE", hiveHill.x + 20, hiveHill.y + 40);
 
-  // Blood Stains
+  // Blood Splatters
   bloodSplats.forEach(b => b.draw());
 
-  // 4. Scenery Trees
+  // Trees
   scenery.forEach(t => {
     ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
     ctx.beginPath();
@@ -673,21 +699,21 @@ function renderLoop() {
     ctx.fill();
   });
 
-  // 5. Units Update & Render
+  // Units
   for (let i = units.length - 1; i >= 0; i--) {
     units[i].update();
     units[i].draw();
     if (units[i].hp <= 0) units.splice(i, 1);
   }
 
-  // 6. Zombies Update & Render
+  // Zombies
   for (let i = zombies.length - 1; i >= 0; i--) {
     zombies[i].update();
     zombies[i].draw();
     if (zombies[i].hp <= 0) zombies.splice(i, 1);
   }
 
-  // 7. Bullets Tracers
+  // Bullets
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
     ctx.strokeStyle = "#fde047";
