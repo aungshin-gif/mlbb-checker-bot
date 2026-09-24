@@ -3,178 +3,160 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Zero Hour: Western Tactical Map RTS</title>
+  <title>Unreal Tactical — Western Outpost 1998</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
     body {
-      background: #080a0e;
-      color: #cbd5e1;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #05070a;
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       height: 100vh;
+      touch-action: none;
     }
-    #top-bar {
-      height: 44px;
-      background: #141721;
-      border-bottom: 2px solid #283144;
+    #top-nav {
+      height: 48px;
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 0 16px;
-      font-size: 13px;
-      z-index: 10;
+      z-index: 50;
+      backdrop-filter: blur(10px);
     }
-    .btn-group { display: flex; gap: 8px; }
-    .rts-btn {
-      background: #1e2638;
-      border: 1px solid #3d4c6b;
-      color: #f1f5f9;
-      padding: 5px 12px;
+    .hud-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hud-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      padding: 6px 14px;
+      border-radius: 6px;
       font-size: 12px;
       font-weight: 600;
-      border-radius: 4px;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all 0.2s;
     }
-    .rts-btn:hover { background: #2b3852; border-color: #38bdf8; }
-    .rts-btn.switch { background: #0284c7; border-color: #38bdf8; }
-    #viewport-container {
+    .hud-btn:active { transform: scale(0.95); background: #38bdf8; color: #000; }
+    .hud-btn.active-p { background: #0284c7; border-color: #38bdf8; }
+    #canvas-container {
       position: relative;
       flex: 1;
       width: 100vw;
       overflow: hidden;
-      cursor: crosshair;
     }
-    canvas#rtsCanvas {
+    canvas#gameCanvas {
       display: block;
       width: 100%;
       height: 100%;
     }
-    /* Minimap HUD */
-    #minimap-wrapper {
-      position: absolute;
-      bottom: 16px;
-      right: 16px;
-      width: 220px;
-      height: 152px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 2px solid #38bdf8;
-      border-radius: 6px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.8);
-      overflow: hidden;
-      z-index: 20;
-    }
-    canvas#minimapCanvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-    #hud-info {
+    #touch-guide {
       position: absolute;
       bottom: 16px;
       left: 16px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid #334155;
+      background: rgba(10, 15, 26, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
       padding: 8px 14px;
-      border-radius: 6px;
-      font-size: 12px;
+      font-size: 11px;
       color: #94a3b8;
       pointer-events: none;
-      z-index: 20;
+      backdrop-filter: blur(6px);
+      z-index: 40;
     }
   </style>
 </head>
 <body>
 
-<div id="top-bar">
-  <div>
-    <strong style="color: #38bdf8;">COMMAND:</strong> ZERO HOUR EXTENDED MAP | 
-    <strong>ACTIVE:</strong> <span id="squad-text" style="color: #60a5fa; font-weight: bold;">SQUAD 1 (BLUE)</span>
+<header id="top-nav">
+  <div class="hud-title">
+    <span>⚡ UNREAL TACTICAL ENGINE</span>
+    <span style="color:#64748b;">|</span>
+    <span id="player-status" style="color:#38bdf8;">SQUAD 1 (BLUE TEAM)</span>
   </div>
-  <div class="btn-group">
-    <button class="rts-btn switch" onclick="switchPlayer()">🕹️ SWITCH TO <span id="switch-text">P2</span></button>
-    <button class="rts-btn" onclick="deployUnit('soldier')">🎖️ Train Blue Suit (50G)</button>
-    <button class="rts-btn" onclick="deployUnit('vehicle')">🚜 Build Heavy Wagon (120G)</button>
+  <div style="display:flex; gap:8px;">
+    <button class="hud-btn active-p" id="switchBtn" onclick="switchPlayer()">🕹️ SWITCH TO P2</button>
+    <button class="hud-btn" onclick="spawnOperator()">🎖️ DEPLOY OPERATOR</button>
   </div>
-</div>
+</header>
 
-<div id="viewport-container">
-  <canvas id="rtsCanvas"></canvas>
-  <div id="minimap-wrapper">
-    <canvas id="minimapCanvas" width="220" height="152"></canvas>
-  </div>
-  <div id="hud-info">
-    [Controls] W, A, S, D (သို့မဟုတ် မြေပြင်အစွန်းသို့ Mouse ရွှေ့) = ကင်မရာရွှေ့မည် | Drag Box = တပ်စုရွေးချယ် | Right-Click = နေရာရွှေ့အမိန့်ပေး
+<div id="canvas-container">
+  <canvas id="gameCanvas"></canvas>
+  <div id="touch-guide">
+    👉 <strong>Touch Controls:</strong> တပ်သားကို ထိ၍ ရွေးချယ်ပါ / မြေပြင်ကို ထိ၍ နေရာရွှေ့ပါ / Screen ပေါ် လက်ဆွဲ၍ Box ဖြင့် အဖွဲ့လိုက် ရွေးပါ
   </div>
 </div>
 
 <script>
-const canvas = document.getElementById("rtsCanvas");
+const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-const miniCanvas = document.getElementById("minimapCanvas");
-const miniCtx = miniCanvas.getContext("2d");
 
-// Realistic World Dimensions (Map အကျယ်ကြီး)
-const WORLD_WIDTH = 2600;
-const WORLD_HEIGHT = 1800;
+const WORLD_W = 2400;
+const WORLD_H = 1600;
+let camera = { x: 0, y: 0 };
 
-// Camera
-let camera = { x: 100, y: 300, speed: 12 };
-let keys = {};
-
-// Game State
 let currentPlayer = 1;
-let selectedUnits = [];
-let isBoxSelecting = false;
-let selectBox = { startX: 0, startY: 0, endX: 0, endY: 0 };
-
 let units = [];
 let zombies = [];
 let bullets = [];
-let scenery = [];
+let particles = [];
+let trees = [];
 
-// Territory Definition
-const townZone = { x: 0, y: 0, w: 1100, h: WORLD_HEIGHT };
-const forestZone = { x: 1100, y: 0, w: 1500, h: WORLD_HEIGHT };
-const graveyardHill = { x: 2100, y: 650, w: 380, h: 480 };
+// Touch & Selection States
+let selectedUnits = [];
+let touchStart = { x: 0, y: 0, time: 0 };
+let isDraggingBox = false;
+let dragBox = { x1: 0, y1: 0, x2: 0, y2: 0 };
 
-// Outposts / Bases
+// Forest & Territory Definition
+const townZone = { x: 0, y: 0, w: 1000, h: WORLD_H };
+const forestZone = { x: 1000, y: 0, w: 1400, h: WORLD_H };
+
+// Bases
 const bases = [
-  { x: 140, y: 220, w: 160, h: 120, name: "P1 Blue Barracks", p: 1 },
-  { x: 140, y: 1250, w: 160, h: 120, name: "P2 Blue Barracks", p: 2 },
-  { x: 550, y: 400, w: 180, h: 140, name: "Western Bank & Saloon" },
-  { x: 550, y: 1050, w: 180, h: 140, name: "Town Courthouse" }
+  { x: 120, y: 220, w: 180, h: 130, name: "P1 Alpha Outpost", p: 1 },
+  { x: 120, y: 1100, w: 180, h: 130, name: "P2 Bravo Outpost", p: 2 }
 ];
 
-// Generate Detailed Realistic Scenery (Trees & Boulders)
-for (let i = 0; i < 220; i++) {
-  scenery.push({
-    x: forestZone.x + 80 + Math.random() * (forestZone.w - 180),
-    y: 80 + Math.random() * (WORLD_HEIGHT - 160),
-    radius: 20 + Math.random() * 18,
-    type: Math.random() < 0.85 ? 'tree' : 'rock'
+// Generate Realistic Trees
+for (let i = 0; i < 180; i++) {
+  trees.push({
+    x: forestZone.x + 80 + Math.random() * (forestZone.w - 160),
+    y: 80 + Math.random() * (WORLD_H - 160),
+    size: 32 + Math.random() * 24,
+    rotation: Math.random() * Math.PI * 2
   });
 }
 
-// Blue Tactical Suit (Zero Hour Guard & Move Stance)
-class BlueSoldier {
-  constructor(x, y, player, isVehicle = false) {
+// -------------------------------------------------------------
+// REALISTIC TOP-DOWN SOLDIER CLASS (Realistic Detailed Mesh)
+// -------------------------------------------------------------
+class TacticalOperator {
+  constructor(x, y, player) {
     this.x = x;
     this.y = y;
     this.player = player;
-    this.isVehicle = isVehicle;
     this.targetX = x;
     this.targetY = y;
     this.selected = false;
-    this.hp = isVehicle ? 320 : 80;
-    this.maxHp = this.hp;
-    this.speed = isVehicle ? 1.8 : 2.6;
-    this.range = isVehicle ? 220 : 150;
-    this.cooldown = 0;
+    this.hp = 100;
+    this.maxHp = 100;
+    this.speed = 2.4;
     this.facing = 0;
     this.walkCycle = 0;
+    this.shootTimer = 0;
+    this.muzzleFlash = 0;
+    this.range = 180;
   }
 
   update() {
@@ -186,12 +168,12 @@ class BlueSoldier {
       this.facing = Math.atan2(dy, dx);
       this.x += (dx / dist) * this.speed;
       this.y += (dy / dist) * this.speed;
-      this.walkCycle += 0.2;
+      this.walkCycle += 0.25;
     }
 
-    // Guard & Attack nearest Zombie
-    if (this.cooldown > 0) this.cooldown--;
-    if (this.cooldown === 0) {
+    // Guard & Fire System
+    if (this.shootTimer > 0) this.shootTimer--;
+    if (this.shootTimer === 0) {
       let target = null;
       let minD = this.range;
 
@@ -205,13 +187,18 @@ class BlueSoldier {
 
       if (target) {
         this.facing = Math.atan2(target.y - this.y, target.x - this.x);
+        this.muzzleFlash = 3;
+        this.shootTimer = 16;
+
         bullets.push({
-          x: this.x, y: this.y,
+          x: this.x + Math.cos(this.facing) * 22,
+          y: this.y + Math.sin(this.facing) * 22,
           tx: target.x, ty: target.y,
-          dmg: this.isVehicle ? 32 : 18,
-          life: 8
+          dmg: 22, life: 6
         });
-        this.cooldown = this.isVehicle ? 26 : 16;
+
+        // Eject Shell Casing
+        particles.push(new ShellParticle(this.x, this.y, this.facing));
       }
     }
   }
@@ -219,218 +206,351 @@ class BlueSoldier {
   draw() {
     const inForest = this.x > forestZone.x;
 
-    // Realistic Conical Flashlight (တောထဲရောက်ပါက အဆင့်မြင့် ဓာတ်မီးကွင်း)
+    // 1. Realistic Volumetric Conical Flashlight (တောထဲ ဓာတ်မီးကွင်း)
     if (inForest) {
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(this.facing);
 
-      const grad = ctx.createRadialGradient(0, 0, 10, 140, 0, 180);
-      grad.addColorStop(0, "rgba(255, 252, 220, 0.55)");
-      grad.addColorStop(0.6, "rgba(255, 245, 180, 0.15)");
-      grad.addColorStop(1, "rgba(255, 255, 255, 0)");
-      ctx.fillStyle = grad;
+      const beamGrad = ctx.createRadialGradient(0, 0, 12, 160, 0, 210);
+      beamGrad.addColorStop(0, "rgba(255, 250, 210, 0.65)");
+      beamGrad.addColorStop(0.4, "rgba(255, 240, 180, 0.25)");
+      beamGrad.addColorStop(0.8, "rgba(255, 230, 140, 0.08)");
+      beamGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
 
+      ctx.fillStyle = beamGrad;
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.arc(0, 0, 180, -Math.PI / 4.5, Math.PI / 4.5);
+      ctx.arc(0, 0, 210, -Math.PI / 4.2, Math.PI / 4.2);
       ctx.closePath();
       ctx.fill();
       ctx.restore();
     }
 
     ctx.save();
-    // Selection Halo
-    if (this.selected) {
-      ctx.strokeStyle = "#38bdf8";
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.isVehicle ? 26 : 14, 0, Math.PI * 2);
-      ctx.stroke();
-    }
 
-    // Drop Shadow
-    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    // 2. Realistic Dynamic Soft Shadow
+    ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
     ctx.beginPath();
-    ctx.ellipse(this.x + 2, this.y + 4, this.isVehicle ? 22 : 8, this.isVehicle ? 12 : 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(this.x + 4, this.y + 6, 12, 7, this.facing, 0, Math.PI * 2);
     ctx.fill();
 
-    if (this.isVehicle) {
-      // Armored Heavy Truck
-      ctx.fillStyle = "#1e293b";
-      ctx.fillRect(this.x - 20, this.y - 14, 40, 28);
-      ctx.fillStyle = this.player === 1 ? "#2563eb" : "#0284c7";
-      ctx.fillRect(this.x - 10, this.y - 10, 20, 20);
-      // Cannon
-      ctx.strokeStyle = "#94a3b8";
-      ctx.lineWidth = 4;
+    // 3. Selection Halo
+    if (this.selected) {
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
       ctx.beginPath();
-      ctx.moveTo(this.x, this.y);
-      ctx.lineTo(this.x + Math.cos(this.facing) * 22, this.y + Math.sin(this.facing) * 22);
+      ctx.arc(this.x, this.y, 22, 0, Math.PI * 2);
       ctx.stroke();
-    } else {
-      // Blue Tactical Suit Model
-      ctx.save();
-      ctx.translate(this.x, this.y);
-      ctx.rotate(this.facing);
-
-      // Limbs Animation
-      const legOffset = Math.sin(this.walkCycle) * 3;
-      ctx.fillStyle = "#0f172a";
-      ctx.fillRect(-6 + legOffset, -6, 5, 3);
-      ctx.fillRect(-6 - legOffset, 3, 5, 3);
-
-      // Body (Navy Blue Tactical Suit)
-      ctx.fillStyle = this.player === 1 ? "#1d4ed8" : "#0284c7";
-      ctx.fillRect(-7, -5, 14, 10);
-
-      // Helmet & Visor
-      ctx.fillStyle = "#0f172a";
-      ctx.beginPath();
-      ctx.arc(0, 0, 5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#38bdf8";
-      ctx.fillRect(2, -2, 3, 4);
-
-      // Rifle Barrel
-      ctx.fillStyle = "#475569";
-      ctx.fillRect(4, 2, 9, 3);
-      ctx.restore();
+      ctx.setLineDash([]);
     }
 
-    // Health Bar
-    ctx.fillStyle = "#dc2626";
-    ctx.fillRect(this.x - 10, this.y - 18, 20, 3);
-    ctx.fillStyle = "#22c55e";
-    ctx.fillRect(this.x - 10, this.y - 18, 20 * (this.hp / this.maxHp), 3);
+    // 4. Procedural Realistic Soldier Model
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.facing);
+
+    // Boots (Animated Walking)
+    const legOffset = Math.sin(this.walkCycle) * 5;
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(-10 + legOffset, -8, 6, 4);
+    ctx.fillRect(-10 - legOffset, 4, 6, 4);
+
+    // Tactical Blue Vest (ပခုံးသိုင်းကြိုး နှင့် ကျောပိုးအိတ်)
+    ctx.fillStyle = this.player === 1 ? "#1e3a8a" : "#0284c7";
+    ctx.fillRect(-10, -9, 16, 18);
+
+    // MOLLE Pouches & Vest Texture
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(-12, -7, 4, 14); // Backpack
+    ctx.fillStyle = "#3b82f6";
+    ctx.fillRect(-6, -7, 8, 4);
+    ctx.fillRect(-6, 3, 8, 4);
+
+    // Shoulders
+    ctx.fillStyle = "#1e40af";
+    ctx.beginPath();
+    ctx.arc(-2, -9, 4, 0, Math.PI * 2);
+    ctx.arc(-2, 9, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Arms Holding Assault Rifle
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(0, -7, 10, 4);
+    ctx.fillRect(2, 4, 8, 3);
+
+    // M4 Assault Rifle
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(4, 1, 18, 3.5); // Barrel
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(8, 0, 7, 5.5); // Receiver & Magazine
+
+    // Kevlar Helmet & Goggles
+    ctx.fillStyle = "#0f172a";
+    ctx.beginPath();
+    ctx.arc(-1, 0, 6.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Night-vision Goggle / Visor
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillRect(2, -3.5, 3.5, 7);
+
+    // Muzzle Flash Effect (ပစ်ခတ်ချိန် မီးပွင့်ထွက်ခြင်း)
+    if (this.muzzleFlash > 0) {
+      ctx.fillStyle = "#fef08a";
+      ctx.beginPath();
+      ctx.arc(26, 3, 7 + Math.random() * 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#f97316";
+      ctx.beginPath();
+      ctx.arc(24, 3, 4, 0, Math.PI * 2);
+      ctx.fill();
+      this.muzzleFlash--;
+    }
+
     ctx.restore();
+
+    // Health Bar
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(this.x - 12, this.y - 24, 24, 4);
+    ctx.fillStyle = "#22c55e";
+    ctx.fillRect(this.x - 12, this.y - 24, 24 * (this.hp / this.maxHp), 4);
   }
 }
 
-// Territorial Ambush Zombie
-class ZombieThreat {
-  constructor(x, y, territory) {
+// -------------------------------------------------------------
+// REALISTIC ZOMBIE CLASS (Top-Down Claws & Decay)
+// -------------------------------------------------------------
+class RealisticZombie {
+  constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.originX = x;
-    this.originY = y;
-    this.territory = territory;
-    this.hp = 70;
-    this.maxHp = 70;
-    this.speed = 1.25;
+    this.hp = 80;
+    this.maxHp = 80;
+    this.speed = 1.3;
+    this.facing = 0;
     this.biteTimer = 0;
-    this.patrolTimer = 0;
-    this.patrolX = x;
-    this.patrolY = y;
-    this.aggroRadius = 140;
+    this.walkCycle = Math.random() * 10;
   }
 
   update() {
-    let closestUnit = null;
-    let minD = this.aggroRadius;
+    let closest = null;
+    let minD = 220;
 
     units.forEach(u => {
       const d = Math.hypot(u.x - this.x, u.y - this.y);
       if (d < minD) {
         minD = d;
-        closestUnit = u;
+        closest = u;
       }
     });
 
-    if (closestUnit) {
-      // Chase Target
-      const dx = closestUnit.x - this.x;
-      const dy = closestUnit.y - this.y;
+    if (closest) {
+      const dx = closest.x - this.x;
+      const dy = closest.y - this.y;
       const dist = Math.hypot(dx, dy);
 
-      if (dist > 10) {
-        this.x += (dx / dist) * 1.7;
-        this.y += (dy / dist) * 1.7;
+      this.facing = Math.atan2(dy, dx);
+      if (dist > 14) {
+        this.x += (dx / dist) * this.speed;
+        this.y += (dy / dist) * this.speed;
+        this.walkCycle += 0.15;
       } else {
         if (this.biteTimer === 0) {
-          closestUnit.hp -= 14;
+          closest.hp -= 15;
           this.biteTimer = 22;
         }
       }
-    } else {
-      // Patrol within territory
-      this.patrolTimer--;
-      if (this.patrolTimer <= 0) {
-        this.patrolX = this.originX + (Math.random() * 120 - 60);
-        this.patrolY = this.originY + (Math.random() * 120 - 60);
-        this.patrolTimer = 90 + Math.random() * 100;
-      }
-      const pdx = this.patrolX - this.x;
-      const pdy = this.patrolY - this.y;
-      const pdist = Math.hypot(pdx, pdy);
-      if (pdist > 2) {
-        this.x += (pdx / pdist) * 0.5;
-        this.y += (pdy / pdist) * 0.5;
-      }
     }
-
     if (this.biteTimer > 0) this.biteTimer--;
   }
 
   draw() {
     ctx.save();
-    // Drop shadow
-    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    // Shadow
+    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
     ctx.beginPath();
-    ctx.ellipse(this.x + 2, this.y + 4, 7, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(this.x + 3, this.y + 5, 10, 6, this.facing, 0, Math.PI * 2);
     ctx.fill();
 
-    // Decayed Gray Body
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.facing);
+
+    // Torso (Torn Clothes)
     ctx.fillStyle = "#334155";
-    ctx.fillRect(this.x - 6, this.y - 6, 12, 12);
-    // Glowing Blood Eyes
-    ctx.fillStyle = "#dc2626";
-    ctx.fillRect(this.x - 3, this.y - 4, 2, 2);
-    ctx.fillRect(this.x + 1, this.y - 4, 2, 2);
+    ctx.fillRect(-8, -8, 14, 16);
+
+    // Extended Claws (ရှေ့သို့ ဆန့်တန်းထားသော လက်များ)
+    const armWave = Math.sin(this.walkCycle) * 3;
+    ctx.fillStyle = "#475569";
+    ctx.fillRect(4, -8 + armWave, 12, 3.5);
+    ctx.fillRect(4, 5 - armWave, 12, 3.5);
+
+    // Head with Blood Stains
+    ctx.fillStyle = "#64748b";
+    ctx.beginPath();
+    ctx.arc(0, 0, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Red Eyes
+    ctx.fillStyle = "#ef4444";
+    ctx.fillRect(3, -3, 2, 2);
+    ctx.fillRect(3, 1, 2, 2);
+
     ctx.restore();
   }
 }
 
-// 3:2 Balance & Stationing
-function maintainBalance() {
-  const currentSoldiers = units.length || 1;
-  const targetZombies = Math.ceil(currentSoldiers * 1.5); // 3 Zombies vs 2 Soldiers
-
-  if (zombies.length < targetZombies) {
-    const isForest = Math.random() < 0.65;
-    let sx, sy, terr;
-    if (isForest) {
-      sx = forestZone.x + 100 + Math.random() * 1100;
-      sy = 80 + Math.random() * (WORLD_HEIGHT - 160);
-      terr = 'forest';
-    } else {
-      sx = 350 + Math.random() * 500;
-      sy = 150 + Math.random() * (WORLD_HEIGHT - 300);
-      terr = 'town';
-    }
-    zombies.push(new ZombieThreat(sx, sy, terr));
+// Shell Casing Particle
+class ShellParticle {
+  constructor(x, y, angle) {
+    this.x = x;
+    this.y = y;
+    this.vx = Math.cos(angle - Math.PI / 2) * (1.5 + Math.random());
+    this.vy = Math.sin(angle - Math.PI / 2) * (1.5 + Math.random());
+    this.life = 20;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.life--;
+  }
+  draw() {
+    ctx.fillStyle = "#fbbf24";
+    ctx.fillRect(this.x, this.y, 2, 1.5);
   }
 }
 
-// Spawning Logic
-function deployUnit(type) {
+// 3:2 Ratio Logic
+function balanceThreats() {
+  const targetZombies = Math.max(4, Math.ceil(units.length * 1.5));
+  if (zombies.length < targetZombies) {
+    const sx = forestZone.x + 100 + Math.random() * (forestZone.w - 200);
+    const sy = 100 + Math.random() * (WORLD_H - 200);
+    zombies.push(new RealisticZombie(sx, sy));
+  }
+}
+
+function spawnOperator() {
   const base = activePlayer === 1 ? bases[0] : bases[1];
-  const isVeh = type === 'vehicle';
-  const u = new BlueSoldier(base.x + base.w + 20, base.y + 30 + Math.random() * 40, activePlayer, isVeh);
-  u.targetX = u.x + 70;
+  const u = new TacticalOperator(base.x + base.w + 20, base.y + 40 + Math.random() * 40, activePlayer);
+  u.targetX = u.x + 80;
   u.targetY = u.y;
   units.push(u);
 }
 
+let activePlayer = 1;
 function switchPlayer() {
   activePlayer = activePlayer === 1 ? 2 : 1;
-  document.getElementById("squad-text").innerText = `SQUAD ${activePlayer} (BLUE)`;
-  document.getElementById("switch-text").innerText = activePlayer === 1 ? "P2" : "P1";
+  document.getElementById("player-status").innerText = `SQUAD ${activePlayer} (BLUE TEAM)`;
+  document.getElementById("switchBtn").innerText = `🕹️ SWITCH TO P${activePlayer === 1 ? 2 : 1}`;
   selectedUnits = [];
   units.forEach(u => u.selected = false);
 }
 
-// Window Resize & Canvas Resizing
+// -------------------------------------------------------------
+// TOUCH & SCREEN INTERACTION ENGINE (ထိတွေ့ ရွှေ့လျားမှု စနစ်)
+// -------------------------------------------------------------
+function handlePointerDown(screenX, screenY) {
+  touchStart = { x: screenX, y: screenY, time: Date.now() };
+  isDraggingBox = true;
+  dragBox = { x1: screenX + camera.x, y1: screenY + camera.y, x2: screenX + camera.x, y2: screenY + camera.y };
+}
+
+function handlePointerMove(screenX, screenY) {
+  if (isDraggingBox) {
+    dragBox.x2 = screenX + camera.x;
+    dragBox.y2 = screenY + camera.y;
+  }
+}
+
+function handlePointerUp(screenX, screenY) {
+  if (!isDraggingBox) return;
+  isDraggingBox = false;
+
+  const duration = Date.now() - touchStart.time;
+  const distMoved = Math.hypot(screenX - touchStart.x, screenY - touchStart.y);
+  const worldX = screenX + camera.x;
+  const worldY = screenY + camera.y;
+
+  // Single Tap on screen (မဆွဲဘဲ ခလုတ်နှိပ်သလို ထိလိုက်ခြင်း)
+  if (distMoved < 10 && duration < 300) {
+    // 1. တပ်သားကို ထိမိခြင်း ရှိမရှိ စစ်ဆေးခြင်း
+    let tappedUnit = null;
+    units.forEach(u => {
+      if (u.player === activePlayer && Math.hypot(u.x - worldX, u.y - worldY) < 28) {
+        tappedUnit = u;
+      }
+    });
+
+    if (tappedUnit) {
+      // တပ်သားကို ရွေးချယ်လိုက်ခြင်း
+      selectedUnits = [tappedUnit];
+      units.forEach(u => u.selected = (u === tappedUnit));
+    } else {
+      // မြေပြင်ကို ထိလိုက်ပါက ရွေးထားသော တပ်သားများကို နေရာရွှေ့စေခြင်း
+      if (selectedUnits.length > 0) {
+        selectedUnits.forEach((u, idx) => {
+          u.targetX = worldX + (idx % 3) * 26 - 26;
+          u.targetY = worldY + Math.floor(idx / 3) * 26 - 26;
+        });
+      }
+    }
+  } else {
+    // Drag Selection Box (လက်ချောင်းဖြင့် ဆွဲ၍ အုပ်စုလိုက် ရွေးချယ်ခြင်း)
+    selectedUnits = [];
+    const minX = Math.min(dragBox.x1, dragBox.x2);
+    const maxX = Math.max(dragBox.x1, dragBox.x2);
+    const minY = Math.min(dragBox.y1, dragBox.y2);
+    const maxY = Math.max(dragBox.y1, dragBox.y2);
+
+    units.forEach(u => {
+      if (u.player === activePlayer) {
+        if (u.x >= minX && u.x <= maxX && u.y >= minY && u.y <= maxY) {
+          u.selected = true;
+          selectedUnits.push(u);
+        } else {
+          u.selected = false;
+        }
+      }
+    });
+  }
+}
+
+// Touch Event Listeners (ဖုန်းအတွက်)
+canvas.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  handlePointerDown(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+}, { passive: false });
+
+canvas.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  handlePointerMove(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+}, { passive: false });
+
+canvas.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.changedTouches[0];
+  handlePointerUp(touch.clientX - rect.left, touch.clientY - rect.top);
+}, { passive: false });
+
+// Mouse Event Listeners (ကွန်ပျူတာအတွက်)
+canvas.addEventListener("mousedown", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  handlePointerDown(e.clientX - rect.left, e.clientY - rect.top);
+});
+canvas.addEventListener("mousemove", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  handlePointerMove(e.clientX - rect.left, e.clientY - rect.top);
+});
+canvas.addEventListener("mouseup", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  handlePointerUp(e.clientX - rect.left, e.clientY - rect.top);
+});
+
+// Canvas Sizing
 function resize() {
   canvas.width = canvas.parentElement.clientWidth;
   canvas.height = canvas.parentElement.clientHeight;
@@ -438,244 +558,103 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-// Camera Handling (Arrow keys, WASD & Edge Scrolling)
-window.addEventListener("keydown", (e) => keys[e.key.toLowerCase()] = true);
-window.addEventListener("keyup", (e) => keys[e.key.toLowerCase()] = false);
+// Initial Units
+spawnOperator();
+spawnOperator();
 
-function updateCamera() {
-  if (keys['arrowleft'] || keys['a']) camera.x -= camera.speed;
-  if (keys['arrowright'] || keys['d']) camera.x += camera.speed;
-  if (keys['arrowup'] || keys['w']) camera.y -= camera.speed;
-  if (keys['arrowdown'] || keys['s']) camera.y += camera.speed;
+// -------------------------------------------------------------
+// AAA RENDER PIPELINE LOOP
+// -------------------------------------------------------------
+function render() {
+  balanceThreats();
 
-  // Clamping Camera
-  camera.x = Math.max(0, Math.min(camera.x, WORLD_WIDTH - canvas.width));
-  camera.y = Math.max(0, Math.min(camera.y, WORLD_HEIGHT - canvas.height));
-}
-
-// Mouse RTS Selection & Movement
-canvas.addEventListener("mousedown", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const screenX = e.clientX - rect.left;
-  const screenY = e.clientY - rect.top;
-  const worldX = screenX + camera.x;
-  const worldY = screenY + camera.y;
-
-  if (e.button === 0) { // Left-Click Selection
-    isBoxSelecting = true;
-    selectBox.startX = worldX;
-    selectBox.startY = worldY;
-    selectBox.endX = worldX;
-    selectBox.endY = worldY;
-  } else if (e.button === 2) { // Right-Click Move/Guard Order
-    selectedUnits.forEach((u, i) => {
-      u.targetX = worldX + (i % 4) * 24 - 24;
-      u.targetY = worldY + Math.floor(i / 4) * 24 - 24;
-    });
+  // Smooth Camera Follow Selection
+  if (selectedUnits.length > 0) {
+    const leader = selectedUnits[0];
+    camera.x += (leader.x - canvas.width / 2 - camera.x) * 0.05;
+    camera.y += (leader.y - canvas.height / 2 - camera.y) * 0.05;
+    camera.x = Math.max(0, Math.min(camera.x, WORLD_W - canvas.width));
+    camera.y = Math.max(0, Math.min(camera.y, WORLD_H - canvas.height));
   }
-});
-
-canvas.addEventListener("mousemove", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const screenX = e.clientX - rect.left;
-  const screenY = e.clientY - rect.top;
-
-  if (isBoxSelecting) {
-    selectBox.endX = screenX + camera.x;
-    selectBox.endY = screenY + camera.y;
-  }
-
-  // Edge Scrolling
-  const margin = 20;
-  if (screenX < margin) camera.x -= camera.speed * 0.8;
-  if (screenX > canvas.width - margin) camera.x += camera.speed * 0.8;
-  if (screenY < margin) camera.y -= camera.speed * 0.8;
-  if (screenY > canvas.height - margin) camera.y += camera.speed * 0.8;
-});
-
-canvas.addEventListener("mouseup", (e) => {
-  if (isBoxSelecting && e.button === 0) {
-    isBoxSelecting = false;
-    selectedUnits = [];
-
-    const minX = Math.min(selectBox.startX, selectBox.endX);
-    const maxX = Math.max(selectBox.startX, selectBox.endX);
-    const minY = Math.min(selectBox.startY, selectBox.endY);
-    const maxY = Math.max(selectBox.startY, selectBox.endY);
-
-    const isSingleClick = Math.hypot(selectBox.startX - selectBox.endX, selectBox.startY - selectBox.endY) < 6;
-
-    units.forEach(u => {
-      if (u.player === activePlayer) {
-        if (isSingleClick) {
-          if (Math.hypot(u.x - selectBox.startX, u.y - selectBox.startY) < 22) {
-            u.selected = true;
-            selectedUnits.push(u);
-          } else {
-            u.selected = false;
-          }
-        } else {
-          if (u.x >= minX && u.x <= maxX && u.y >= minY && u.y <= maxY) {
-            u.selected = true;
-            selectedUnits.push(u);
-          } else {
-            u.selected = false;
-          }
-        }
-      }
-    });
-  }
-});
-
-canvas.addEventListener("contextmenu", (e) => e.preventDefault());
-
-// Minimap Click Navigation
-miniCanvas.addEventListener("click", (e) => {
-  const rect = miniCanvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
-
-  const targetWorldX = (mx / miniCanvas.width) * WORLD_WIDTH;
-  const targetWorldY = (my / miniCanvas.height) * WORLD_HEIGHT;
-
-  camera.x = targetWorldX - canvas.width / 2;
-  camera.y = targetWorldY - canvas.height / 2;
-});
-
-// Deploy Initial Forces
-let activePlayer = 1;
-deployUnit('soldier');
-deployUnit('soldier');
-activePlayer = 2;
-deployUnit('soldier');
-deployUnit('soldier');
-activePlayer = 1;
-
-// Main Render Engine Loop
-function engineLoop() {
-  updateCamera();
-  maintainBalance();
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Apply Camera Translation
   ctx.save();
   ctx.translate(-camera.x, -camera.y);
 
-  // 1. Draw Realistic Ground
-  // Town Dirt Ground
-  ctx.fillStyle = "#735338";
+  // 1. Photorealistic Dirt & Forest Terrain
+  ctx.fillStyle = "#5c4028"; // Dusty Sand Dirt
   ctx.fillRect(townZone.x, townZone.y, townZone.w, townZone.h);
 
-  // Dense Forest Ground
-  ctx.fillStyle = "#1b2419";
+  ctx.fillStyle = "#121a14"; // Dark Dense Forest Ground
   ctx.fillRect(forestZone.x, forestZone.y, forestZone.w, forestZone.h);
 
-  // Ground Textures / Pathways
-  ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
-  ctx.lineWidth = 14;
+  // Dirt Roads with Soft Edge Blur
+  ctx.strokeStyle = "rgba(45, 30, 15, 0.4)";
+  ctx.lineWidth = 40;
   ctx.beginPath();
-  ctx.moveTo(200, 260);
-  ctx.lineTo(650, 450);
-  ctx.lineTo(1100, 900);
-  ctx.lineTo(2100, 850);
+  ctx.moveTo(150, 280);
+  ctx.lineTo(800, 500);
+  ctx.lineTo(1400, 800);
   ctx.stroke();
 
-  // Zone Boundary
-  ctx.strokeStyle = "rgba(0,0,0,0.45)";
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(forestZone.x, 0);
-  ctx.lineTo(forestZone.x, WORLD_HEIGHT);
-  ctx.stroke();
-
-  // 2. Draw Bases & Buildings
+  // 2. Realistic Bases
   bases.forEach(b => {
-    // Drop Shadow
-    ctx.fillStyle = "rgba(0,0,0,0.4)";
-    ctx.fillRect(b.x + 8, b.y + 8, b.w, b.h);
+    // Ambient Occlusion Shadow
+    ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+    ctx.fillRect(b.x + 12, b.y + 12, b.w, b.h);
 
-    ctx.fillStyle = "#2d1f14";
-    ctx.fillRect(b.x - 3, b.y - 3, b.w + 6, b.h + 6);
-    ctx.fillStyle = b.p ? (b.p === 1 ? "#1e3a8a" : "#0369a1") : "#4a3525";
+    ctx.fillStyle = "#1e293b";
     ctx.fillRect(b.x, b.y, b.w, b.h);
-
-    // Roof Lines
-    ctx.strokeStyle = "rgba(255,255,255,0.1)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(b.x + 6, b.y + 6, b.w - 12, b.h - 12);
+    ctx.fillStyle = b.p === 1 ? "#1e3a8a" : "#0284c7";
+    ctx.fillRect(b.x + 6, b.y + 6, b.w - 12, 14);
 
     ctx.fillStyle = "#f8fafc";
-    ctx.font = "bold 13px 'Segoe UI', Tahoma";
-    ctx.fillText(b.name, b.x + 12, b.y + 26);
+    ctx.font = "bold 13px -apple-system, sans-serif";
+    ctx.fillText(b.name, b.x + 14, b.y + 40);
   });
 
-  // 3. Draw Cursed Graveyard Hill
-  ctx.fillStyle = "rgba(0,0,0,0.5)";
-  ctx.fillRect(graveyardHill.x + 10, graveyardHill.y + 10, graveyardHill.w, graveyardHill.h);
-  ctx.fillStyle = "#0f172a";
-  ctx.fillRect(graveyardHill.x, graveyardHill.y, graveyardHill.w, graveyardHill.h);
-  ctx.fillStyle = "#ef4444";
-  ctx.font = "bold 14px 'Segoe UI'";
-  ctx.fillText("CURSED HILL CEMETERY", graveyardHill.x + 16, graveyardHill.y + 30);
+  // 3. Realistic Scenery Trees (Layered Depth)
+  trees.forEach(t => {
+    // Directional Shadow
+    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.beginPath();
+    ctx.ellipse(t.x + 16, t.y + 16, t.size * 1.1, t.size * 0.7, 0.4, 0, Math.PI * 2);
+    ctx.fill();
 
-  // Tombstones
-  ctx.fillStyle = "#64748b";
-  for (let i = 0; i < 18; i++) {
-    const tx = graveyardHill.x + 30 + (i % 5) * 65;
-    const ty = graveyardHill.y + 60 + Math.floor(i / 5) * 85;
-    ctx.fillRect(tx, ty, 14, 20);
-  }
+    // Base Canopy
+    ctx.fillStyle = "#0a1f0d";
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, t.size, 0, Math.PI * 2);
+    ctx.fill();
 
-  // 4. Draw Scenery (Rocks & Realistic Trees)
-  scenery.forEach(s => {
-    if (s.type === 'rock') {
-      ctx.fillStyle = "#475569";
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.radius * 0.6, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // Tree Shadow
-      ctx.fillStyle = "rgba(0,0,0,0.3)";
-      ctx.beginPath();
-      ctx.ellipse(s.x + 8, s.y + 8, s.radius, s.radius * 0.6, 0, 0, Math.PI * 2);
-      ctx.fill();
+    // Mid Leaves
+    ctx.fillStyle = "#143818";
+    ctx.beginPath();
+    ctx.arc(t.x - 3, t.y - 3, t.size * 0.78, 0, Math.PI * 2);
+    ctx.fill();
 
-      // Multi-layer Leaves
-      ctx.fillStyle = "#0d2011";
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#16381c";
-      ctx.beginPath();
-      ctx.arc(s.x - 3, s.y - 3, s.radius * 0.75, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#22542a";
-      ctx.beginPath();
-      ctx.arc(s.x - 5, s.y - 5, s.radius * 0.45, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    // Highlight Canopy
+    ctx.fillStyle = "#1f5225";
+    ctx.beginPath();
+    ctx.arc(t.x - 6, t.y - 6, t.size * 0.45, 0, Math.PI * 2);
+    ctx.fill();
   });
 
-  // 5. Update & Draw Units
+  // 4. Update & Draw Units
   for (let i = units.length - 1; i >= 0; i--) {
-    const u = units[i];
-    u.update();
-    u.draw();
-    if (u.hp <= 0) units.splice(i, 1);
+    units[i].update();
+    units[i].draw();
+    if (units[i].hp <= 0) units.splice(i, 1);
   }
 
-  // 6. Update & Draw Zombies
+  // 5. Update & Draw Zombies
   for (let i = zombies.length - 1; i >= 0; i--) {
-    const z = zombies[i];
-    z.update();
-    z.draw();
-    if (z.hp <= 0) zombies.splice(i, 1);
+    zombies[i].update();
+    zombies[i].draw();
+    if (zombies[i].hp <= 0) zombies.splice(i, 1);
   }
 
-  // 7. Bullets Tracer
+  // 6. Bullets Tracers
   for (let i = bullets.length - 1; i >= 0; i--) {
     const b = bullets[i];
     ctx.strokeStyle = "#fde047";
@@ -688,71 +667,37 @@ function engineLoop() {
     b.life--;
     if (b.life === 1) {
       zombies.forEach(z => {
-        if (Math.hypot(z.x - b.tx, z.y - b.ty) < 20) z.hp -= b.dmg;
+        if (Math.hypot(z.x - b.tx, z.y - b.ty) < 22) z.hp -= b.dmg;
       });
     }
     if (b.life <= 0) bullets.splice(i, 1);
   }
 
-  // 8. Box Drag Indicator
-  if (isBoxSelecting) {
+  // 7. Shell Particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].update();
+    particles[i].draw();
+    if (particles[i].life <= 0) particles.splice(i, 1);
+  }
+
+  // 8. Drag-to-Select Box
+  if (isDraggingBox) {
     ctx.strokeStyle = "#38bdf8";
-    ctx.lineWidth = 1.2;
-    ctx.fillStyle = "rgba(56, 189, 248, 0.08)";
-    const bx = Math.min(selectBox.startX, selectBox.endX);
-    const by = Math.min(selectBox.startY, selectBox.endY);
-    const bw = Math.abs(selectBox.startX - selectBox.endX);
-    const bh = Math.abs(selectBox.startY - selectBox.endY);
+    ctx.lineWidth = 1.5;
+    ctx.fillStyle = "rgba(56, 189, 248, 0.12)";
+    const bx = Math.min(dragBox.x1, dragBox.x2);
+    const by = Math.min(dragBox.y1, dragBox.y2);
+    const bw = Math.abs(dragBox.x1 - dragBox.x2);
+    const bh = Math.abs(dragBox.y1 - dragBox.y2);
     ctx.fillRect(bx, by, bw, bh);
     ctx.strokeRect(bx, by, bw, bh);
   }
 
   ctx.restore();
-
-  // 9. Render Minimap HUD
-  renderMinimap();
-
-  requestAnimationFrame(engineLoop);
+  requestAnimationFrame(render);
 }
 
-function renderMinimap() {
-  const mw = miniCanvas.width;
-  const mh = miniCanvas.height;
-  const scaleX = mw / WORLD_WIDTH;
-  const scaleY = mh / WORLD_HEIGHT;
-
-  miniCtx.fillStyle = "#0f172a";
-  miniCtx.fillRect(0, 0, mw, mh);
-
-  // Town & Forest zones
-  miniCtx.fillStyle = "#735338";
-  miniCtx.fillRect(0, 0, townZone.w * scaleX, mh);
-  miniCtx.fillStyle = "#1b2419";
-  miniCtx.fillRect(townZone.w * scaleX, 0, forestZone.w * scaleX, mh);
-
-  // Cemetery
-  miniCtx.fillStyle = "#450a0a";
-  miniCtx.fillRect(graveyardHill.x * scaleX, graveyardHill.y * scaleY, graveyardHill.w * scaleX, graveyardHill.h * scaleY);
-
-  // Units (Blue Dots)
-  miniCtx.fillStyle = "#38bdf8";
-  units.forEach(u => {
-    miniCtx.fillRect(u.x * scaleX - 1.5, u.y * scaleY - 1.5, 3, 3);
-  });
-
-  // Zombies (Red Dots)
-  miniCtx.fillStyle = "#ef4444";
-  zombies.forEach(z => {
-    miniCtx.fillRect(z.x * scaleX - 1, z.y * scaleY - 1, 2, 2);
-  });
-
-  // Camera Viewport Box on Minimap
-  miniCtx.strokeStyle = "#ffffff";
-  miniCtx.lineWidth = 1.2;
-  miniCtx.strokeRect(camera.x * scaleX, camera.y * scaleY, canvas.width * scaleX, canvas.height * scaleY);
-}
-
-engineLoop();
+render();
 </script>
 
 </body>
